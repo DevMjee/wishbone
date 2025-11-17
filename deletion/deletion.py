@@ -2,7 +2,7 @@
 
 
 def lambda_handler(event, context):
-    return "Hello world"
+    return {'event': event, 'context': context}
 
 
 if __name__ == "__main__":

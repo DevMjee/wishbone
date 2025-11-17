@@ -5,6 +5,6 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY transform.py load.py transform-load.py ./
+COPY transform.py load.py transform_load.py ./
 
-CMD [ "transform-load.lambda_handler" ]
+CMD [ "transform_load.lambda_handler" ]

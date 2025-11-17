@@ -8,9 +8,7 @@ assignees: ''
 ---
 
 #Description
-Create user stories to have an idea of the end users to drive the work done in the project
-This is required so we can figure out what features would be useful for people
-Useful for determining minimum viable product
+Enter description here, include user stories if applicable
 
 #Checklist
 - optional

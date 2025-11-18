@@ -27,17 +27,11 @@ CREATE TABLE listing(
     platform_code TEXT NOT NULL,
     game_id INT NOT NULL,
     platform_id INT NOT NULL,
+    price INT NOT NULL,
+    discount_percent INT,
+    recording_date DATE CHECK (recording_date <= CURRENT_DATE),
     PRIMARY KEY(listing_id),
     FOREIGN KEY (game_id) REFERENCES game(game_id),
     FOREIGN KEY (platform_id) REFERENCES platform(platform_id)
 );
 
-CREATE TABLE price_record(
-    price_record_id INT GENERATED ALWAYS AS identity (MINVALUE 1 START WITH 1 INCREMENT BY 1),
-    listing_id INT NOT NULL,
-    price INT NOT NULL,
-    discount_percent INT,
-    recording_date DATE CHECK (recording_date <= CURRENT_DATE),
-    PRIMARY KEY(price_record_id),
-    FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
-);

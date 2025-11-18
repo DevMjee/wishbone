@@ -1,1 +1,4 @@
-epicstore-api
+aiohttp
+aiodns
+requests
+beautifulsoup4

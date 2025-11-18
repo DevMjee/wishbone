@@ -1,0 +1,10 @@
+[
+    {
+        "game_name": "fake",
+        "retail_price": 100,
+        "platform_name": "gog",
+        "listing_date": "2025-11-18",
+        "discount_percent": 99,
+        "price": 1
+    }
+]

@@ -98,32 +98,54 @@ def extract_all_games(max_workers=20) -> list[dict]:
 
 
 def extract_real_games():
+    try:
 
-    response = api.fetch_store_games(
-        count=10000,
-        product_type="games",
-        allow_countries="GB",
-        with_price=True,
-        sort_by="title",
-        sort_dir="ASC"
-    )
+        response = api.fetch_store_games(
+            count=10000,
+            product_type="games",
+            allow_countries="GB",
+            with_price=True,
+            sort_by="title",
+            sort_dir="ASC"
+        )
 
-    elements = response.get("elements", {})
+        print(f"Response type: {type(response)}")
+        print(
+            f"Response keys (if dict): {response.keys() if isinstance(response, dict) else "Not a dict"}")
+        print(
+            f"First item preview: {response[0] if isinstance(response, list) and len(response) > 0 else response}")
 
-    results = []
-    for item in elements:
-        total_price = item.get("price", {}).get("totalPrice", {})
+        if isinstance(response, list):
+            elements = response
+        else:
+            elements = response.get("data", response.get("elements", []))
 
-        results.append({
-            "id": item.get("id"),
-            "title": item.get("title"),
-            "namespace": item.get("namespace"),
-            "slug": item.get("productSlug"),
-            "retailPrice": total_price.get("originalPrice", 0),
-            "discountPrice": total_price.get("discountPrice", 0)
-        })
+        results = []
+        for item in elements:
 
-    return results
+            if len(results) == 0:
+                print(
+                    f"First item structure: {item.keys() if isinstance(item, dict) else item}")
+
+            total_price = item.get("price", {}).get("totalPrice", {})
+
+            results.append({
+                "id": item.get("id"),
+                "title": item.get("title"),
+                "namespace": item.get("namespace"),
+                "slug": item.get("productSlug"),
+                "retailPrice": total_price.get("originalPrice", 0),
+                "discountPrice": total_price.get("discountPrice", 0)
+            })
+
+        print(f"Results created: {len(results)}")
+        return results
+
+    except Exception as e:
+        print(f"Error in extract_real_games: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
 
 
 if __name__ == "__main__":
@@ -134,4 +156,4 @@ if __name__ == "__main__":
     print(f"\n Extracted {len(all_games)} games\n")
 
     print("Example preview (first 50): ")
-    pprint.pprint(all_games[:50])
+    pprint.pprint(all_games[:5])

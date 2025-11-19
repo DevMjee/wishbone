@@ -2,3 +2,5 @@ requests
 dotenv
 pandas
 numpy
+b4
+pylint

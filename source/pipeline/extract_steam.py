@@ -1,77 +1,79 @@
 """Script which gets data from steam web api"""
-from os import environ
-import requests
-import multiprocessing
-import time
+
 import json
-import numpy as np
-import pandas as pd
+import os
+from bs4 import BeautifulSoup
+import requests
 
-URL_FORMAT = "https://store.steampowered.com/api/appdetails/?appids={app_ids}&cc=uk"
-# for boolean checking
-PRICE_FORMAT = "https://store.steampowered.com/api/appdetails/?appids={app_id}&cc=uk"
-
-# WISHLIST_URL_FORMAT = "https://api.steampowered.com/IWishlistService/GetWishlist/v1/?access_token={api_key}&steamid={steamid}"
-MAX_RESULTS = 100
-NUM_PROCESSES_INFO = 16
-NUM_PROCESSES_PRICE = 64
+URL = 'https://store.steampowered.com/search/results/?query&start={start}&filter=topsellers&infinite=1'
+INITIAL_URL = URL.format(start=0)
+FOLDER_PATH = 'data/'
+FILEPATH = f'{FOLDER_PATH}steam_products.json'
+MAX_SEARCH = 500  # use totalresults(INITIAL_URL) when scaling up
 
 
-def get_from_db(app_ids: list[int]) -> dict:
-    """Pull games, ids, and prices from api"""
-    app_ids = [str(app_id) for app_id in app_ids]
-    app_ids_csv = ','.join(app_ids)
-    # print(app_ids_csv)
-    response = requests.get(URL_FORMAT.format(app_ids=app_ids_csv))
-    # response_list = [{k: v} for k, v in response.json().items()]
-    return response.text
+def total_results(url):
+    """Function to grap the total number of pages for possible data endpoints"""
+    resp = requests.get(url)
+    raw_data = dict(resp.json())
+    results_count = raw_data['total_count']
+    return int(results_count)
 
 
-def is_valid_endpoint(app_id: int) -> bool:
-    """check if valid endpoint"""
-    response = requests.get(PRICE_FORMAT.format(app_id=app_id))
-    return response.json().get(str(app_id)).get('success')
-
-# def get_wishlist_by_id(steamid: int) -> list[dict]:
-#     response = requests.get(WISHLIST_URL_FORMAT.format(
-#         api_key=environ['API_KEY'], steamid=steamid))
-#     print(response.json())
+def get_data(url):
+    """Funciton to obtain raw data from url html"""
+    resp = requests.get(url)
+    raw_data = dict(resp.json())
+    return raw_data['results_html']
 
 
-def get_endpoints() -> list[int]:
-    pages = []
-    app_id = 10
-    while MAX_RESULTS > 0:
-        if is_valid_endpoint(app_id):
-            pages.append(app_id)
-            MAX_RESULTS -= 1
+def parse(data):
+    """Function to scrape top selling games and output list of dicts with prices and titles"""
+    games_list = []
+    soup = BeautifulSoup(data, 'html.parser')
+    games = soup.find_all('a')
+
+    for game in games:
+        title = game.find('span', {'class': 'title'}).text
+        latest_price = game.find(
+            'div', {'class': 'discount_final_price'})
+        if latest_price:
+            latest_price = latest_price.text.strip().split(
+                '£')[-1].replace('.', '')
         else:
-            app_id += 10
+            continue  # skip this game if no listed price
+        try:
+            price = game.find(
+                'div', {'class': 'discount_original_price'}).text.strip().split('£')[-1].replace('.', '')
+        except:
+            price = latest_price
 
-    print("no more results")
-    print(f"last app id = {app_id}")
-    print(f"pages = {pages}")
+        extracted_game = {
+            'name': title,
+            'base_price_gbp_pence': price,
+            'final_price_gbp_pence': latest_price,
+        }
 
-    return pages
+        games_list.append(extracted_game)
 
-
-def get_price_info(app_ids_matrix: list[list[int]]) -> list[dict]:
-    with multiprocessing.Pool(NUM_PROCESSES_PRICE) as pool:
-        output = pool.map(get_from_db, app_ids_matrix)
-
-    return output
+    return games_list
 
 
-if __name__ == "__main__":
-    start_time = time.time()
+def output(results) -> None:
+    """Function to create output json file"""
+    if not os.path.isdir(FOLDER_PATH):
+        os.mkdir(FOLDER_PATH)
 
-    app_ids = get_endpoints()
-    app_ids_matrix = np.array_split(app_ids, 2500)
-    app_ids_matrix = [app_ids[x:x+25] for x in range(0, len(app_ids), 25)]
+    with open(FILEPATH, 'w+') as f:
+        json.dump(results, f)
 
-    print(get_price_info(app_ids_matrix))
-    # save to steam_products.json
 
-    end_time = time.time()
-    print(f"Time taken: {end_time - start_time}")
-    # print(get_from_steam_db([10, 20, 30]))
+if __name__ == '__main__':
+    results = []
+
+    for step in range(0, MAX_SEARCH, 50):
+        top_selling = get_data(URL.format(start=step))
+        results.append(parse(top_selling))
+        print('Results Scraped: ', step)
+
+    output(results)

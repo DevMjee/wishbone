@@ -10,7 +10,7 @@ from forex_python.converter import CurrencyRates
 
 BASE_DIR = "https://www.gogdb.org/data/products"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
-
+OUTPUT_PATH = 'data/gog_products.json'
 CONCURRENCY = 100
 TIMEOUT = 600
 
@@ -117,7 +117,7 @@ def get_all_product_ids():
     return ids
 
 
-if __name__ == "__main__":
+def extract_gog():
     print("Fetching all product IDs...")
     product_ids = get_all_product_ids()
     print(f"Found {len(product_ids)} products")
@@ -133,7 +133,11 @@ if __name__ == "__main__":
 
     os.makedirs("data", exist_ok=True)
 
-    with open("data/products.json", "w") as f:
+    with open(OUTPUT_PATH, "w") as f:
         json.dump(results, f, indent=4)
 
     print("Saved results to products.json")
+
+
+if __name__ == "__main__":
+    extract_gog()

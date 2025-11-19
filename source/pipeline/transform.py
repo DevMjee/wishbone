@@ -13,6 +13,10 @@ TEST_DATA = 'test_products.json'
 
 
 def transform_source(filename: str) -> pd.DataFrame:
+    """
+    Reads data from a JSON file into a Pandas dataframe
+    and transforms it to the format expected by load script
+    """
     # Read data from file
     with open(f'{DIRECTORY}{filename}') as f:
         source_data = json.load(f)
@@ -60,7 +64,8 @@ def transform_source(filename: str) -> pd.DataFrame:
 
     # Rename and reorder columns to be in line with load script input
     source_dataframe.rename(columns={'name': 'game_name',
-                                     'base_price_gbp_pence': 'retail_price', 'final_price_gbp_pence': 'final_price'}, inplace=True)
+                                     'base_price_gbp_pence': 'retail_price',
+                                     'final_price_gbp_pence': 'final_price'}, inplace=True)
 
     source_dataframe = source_dataframe[['game_name', 'retail_price', 'platform_name',
                                          'listing_date', 'discount_percent', 'final_price']].copy()
@@ -69,6 +74,7 @@ def transform_source(filename: str) -> pd.DataFrame:
 
 
 def transform_all():
+    """Iterates through available sources and transforms raw data from them, saving to JSON"""
     # Get dataframes from each source and append to list
     all_data_sources = []
     for source_filename in SOURCE_FILES:

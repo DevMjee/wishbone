@@ -10,6 +10,7 @@ BASE_DIR = "https://www.gogdb.org/data/products"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 CONCURRENCY = 100
+TIMEOUT = 600
 
 
 async def fetch_json(session, url):
@@ -79,7 +80,7 @@ async def extract_product(session, product_id: int, usd_to_gbp: float):
 async def extract_batch(product_ids, usd_to_gbp: float):
     """Async extract for a batch of product IDs."""
     connector = aiohttp.TCPConnector(limit=CONCURRENCY)
-    timeout = aiohttp.ClientTimeout(total=600)
+    timeout = aiohttp.ClientTimeout(total=TIMEOUT)
 
     async with aiohttp.ClientSession(
         connector=connector,

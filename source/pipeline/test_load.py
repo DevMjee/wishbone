@@ -1,4 +1,5 @@
-import pytest
+"""Tests for load script"""
+
 from unittest.mock import MagicMock, patch
 from datetime import date
 from load import get_or_create_game, get_or_create_platform, insert_listing, load_data, get_connection

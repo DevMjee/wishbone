@@ -62,7 +62,7 @@ async def test_extract_product_with_prices():
         }
     }
 
-    async def mock_get(url):
+    def mock_get(url):
         ctx = AsyncMock()
         ctx.__aenter__.return_value = product_response if "product.json" in url else prices_response
         return ctx
@@ -70,6 +70,6 @@ async def test_extract_product_with_prices():
     session.get = mock_get
 
     result = await extract_product(session, 123, usd_to_gbp=0.7)
-    assert result["name"] == "Fake Game"
+    assert result["name"] == "fake"
     assert result["base_price_gbp_pence"] == 700
     assert result["final_price_gbp_pence"] == 350

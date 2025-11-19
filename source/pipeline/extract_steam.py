@@ -87,4 +87,6 @@ if __name__ == '__main__':
         results.append(parse(top_selling))
         print('Results Scraped: ', step)
 
+    results = [element for innerList in results for element in innerList]
+
     output(results)

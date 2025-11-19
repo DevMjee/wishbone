@@ -1,3 +1,5 @@
+"""Extract script which gets data from GOG DB"""
+
 import asyncio
 import aiohttp
 import json

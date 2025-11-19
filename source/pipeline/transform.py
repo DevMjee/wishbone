@@ -7,21 +7,18 @@ from datetime import datetime
 
 
 DIRECTORY = 'data/'
-INPUT_PATH = f'{DIRECTORY}products.json'
+GOG_INPUT_FILE = 'gog_products.json'
+STEAM_INPUT_FILE = 'steam_products.json'
 OUTPUT_PATH = f'{DIRECTORY}clean_data.json'
 
 
-def get_data(path: str) -> list[dict]:
-    pass
-
-
-def transform_gog(file: str) -> pd.DataFrame:
+def transform_data(filename: str) -> pd.DataFrame:
     # Read data from file
-    with open(file) as f:
-        gog_data = json.load(f)
+    with open(f'{DIRECTORY}{filename}') as f:
+        data = json.load(f)
 
     # Create dataframe
-    all_data = pd.DataFrame(gog_data)
+    all_data = pd.DataFrame(data)
 
     # Drop NaN values
     all_data.dropna(subset=['base_price_gbp_pence'], inplace=True)
@@ -44,8 +41,9 @@ def transform_gog(file: str) -> pd.DataFrame:
     all_data = all_data[['name', 'base_price_gbp_pence',
                          'final_price_gbp_pence', 'discount_percent']].copy()
 
-    # Set platform name for all rows
-    all_data.loc[:, 'platform_name'] = 'gog'
+    # Set platform name for all rows based on which file is being read
+    # (e.g. reading from gog_products.json sets platform_name to 'gog')
+    all_data.loc[:, 'platform_name'] = filename.split('_')[0]
 
     # Timestamp data with today's date
     all_data.loc[:, 'listing_date'] = datetime.today().date()
@@ -70,6 +68,14 @@ def transform_gog(file: str) -> pd.DataFrame:
     return all_data
 
 
+def transform_all():
+    # Transform GoG data
+    transform_data(GOG_INPUT_FILE).to_json(
+        OUTPUT_PATH, indent=4, orient='records')
+    # Transform Steam data
+    transform_data(STEAM_INPUT_FILE).to_json(
+        OUTPUT_PATH, indent=4, orient='records')
+
+
 if __name__ == "__main__":
-    cleaned_data = transform_gog(INPUT_PATH)
-    cleaned_data.to_json(OUTPUT_PATH, indent=4, orient='records')
+    transform_all()

@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 DIRECTORY = 'data/'
-SOURCE_FILES = ['gog_products.json']
+SOURCE_FILES = ['gog_products.json', 'steam_products.json']
 OUTPUT_PATH = f'{DIRECTORY}clean_data.json'
 TEST_DATA = 'test_products.json'
 

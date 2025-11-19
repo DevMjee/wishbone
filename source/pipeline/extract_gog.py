@@ -21,9 +21,21 @@ async def fetch_json(session, url):
         async with session.get(url) as r:
             if r.status == 200:
                 return await r.json()
-    except:
+            if r.status == 404:
+                print(f"404: File not found for {url}")
+                return None
+            if r.status == 429:
+                print(f"429: Rate limit hit for {url}")
+                return None
+            if r.status == 500:
+                print(f"500: Server error for {url}")
+
+            print(f"{r.status}: Error for {url}")
+            return None
+
+    except Exception as e:
+        print(f"Exception error fetching {url}: {e}")
         return None
-    return None
 
 
 async def extract_product(session, product_id: int, usd_to_gbp: float):

@@ -6,9 +6,13 @@ from psycopg2.extras import RealDictCursor
 from psycopg2.extensions import connection
 from dotenv import load_dotenv
 import requests
+from bs4 import BeautifulSoup
 
 
 URL = "https://store.steampowered.com/api/appdetails/?appids={appid}&cc=uk&filters=price_overview"
+BASE_DIR = "https://www.gogdb.org/data/products"
+HEADERS = {"User-Agent": "Mozilla/5.0"}
+
 load_dotenv()
 
 
@@ -43,13 +47,30 @@ def get_data(conn: connection):
     return data
 
 
+def get_all_product_ids():
+    """Scrape folder listing to get ALL product IDs."""
+    r = requests.get(BASE_DIR + "/", headers=HEADERS)
+    soup = BeautifulSoup(r.text, "html.parser")
+    ids = []
+    count = 0
+    for link in soup.find_all("a"):
+        count += 1
+        href = link.get("href", "")
+        if href.endswith("/") and href[:-1].isdigit():
+            ids.append(int(href[:-1]))
+
+    ids.sort()
+    return ids
+
+
 def lambda_handler(event, context):
     "lambda handler function to check there is data in the database"
     db_conn = get_connection()
     db_data = get_data(db_conn)
     steam_response = get_from_steam_db(10)
+    ids = get_all_product_ids()
 
-    data = {"body": f"{db_data}", "statusCode": f"{steam_response}"}
+    data = {"body": f"{[db_data], [ids]}", "statusCode": f"{steam_response}"}
 
     return data
 

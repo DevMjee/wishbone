@@ -11,8 +11,11 @@ INPUT_PATH = f'{DIRECTORY}products.json'
 OUTPUT_PATH = f'{DIRECTORY}clean_data.json'
 
 
+def get_data(path: str) -> list[dict]:
+    pass
+
+
 def transform_gog(file: str) -> pd.DataFrame:
-    """Used to get data from a nested dict. Will return None if any level isn't valid"""
     # Read data from file
     with open(file) as f:
         gog_data = json.load(f)

@@ -1,4 +1,4 @@
-"""Script for loading data to S3"""
+"""Script for loading data to RDS"""
 import json
 import os
 import psycopg2
@@ -13,7 +13,7 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 
-DATA_PATH = "cleaned_data.json"
+DATA_PATH = "data/cleaned_data.json"
 
 
 def get_connection():
@@ -31,7 +31,7 @@ def get_or_create_game(cur, game_name: str, retail_price: int) -> int:
     """Return game_id: insert if game does not exist."""
     cur.execute(
         """
-            SELECT game_id FROM game WHERE game_name = %s;
+            SELECT game_id FROM wishbone.game WHERE game_name = %s;
         """,
         (game_name,)
     )
@@ -42,7 +42,7 @@ def get_or_create_game(cur, game_name: str, retail_price: int) -> int:
 
     cur.execute(
         """
-            INSERT INTO game (game_name, retail_price)
+            INSERT INTO wishbone.game (game_name, retail_price)
             VALUES (%s, %s)
             RETURNING game_id;
         """,
@@ -55,7 +55,7 @@ def get_or_create_platform(cur, platform_name: str) -> int:
     """Return platform_id: insert if platform does not exist."""
     cur.execute(
         """
-            SELECT platform_id FROM platform WHERE platform_name = %s;
+            SELECT platform_id FROM wishbone.platform WHERE platform_name = %s;
         """,
         (platform_name,)
     )
@@ -66,7 +66,7 @@ def get_or_create_platform(cur, platform_name: str) -> int:
 
     cur.execute(
         """
-            INSERT INTO platform (platform_name)
+            INSERT INTO wishbone.platform (platform_name)
             VALUES (%s)
             RETURNING platform_id;
         """,
@@ -79,7 +79,7 @@ def insert_listing(cur, game_id: int, platform_id: int, price: int, discount_per
     """Insert a listing row"""
     cur.execute(
         """
-            INSERT INTO listing (game_id, platform_id, price, discount_percent, listing_date)
+            INSERT INTO wishbone.listing (game_id, platform_id, price, discount_percent, recording_date)
             VALUES (%s, %s, %s, %s, %s);
         """,
         (game_id, platform_id, price, discount_percent, listing_date)

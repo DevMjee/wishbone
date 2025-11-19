@@ -12,12 +12,12 @@ URL_FORMAT = "https://store.steampowered.com/api/appdetails/?appids={app_ids}&cc
 PRICE_FORMAT = "https://store.steampowered.com/api/appdetails/?appids={app_id}&cc=uk"
 
 # WISHLIST_URL_FORMAT = "https://api.steampowered.com/IWishlistService/GetWishlist/v1/?access_token={api_key}&steamid={steamid}"
-MAX_RESULTS = 10000
+MAX_RESULTS = 100
 NUM_PROCESSES_INFO = 16
 NUM_PROCESSES_PRICE = 64
 
 
-def get_from_steam_db(app_ids: list[int]) -> dict:
+def get_from_db(app_ids: list[int]) -> dict:
     """Pull games, ids, and prices from api"""
     app_ids = [str(app_id) for app_id in app_ids]
     app_ids_csv = ','.join(app_ids)
@@ -27,8 +27,8 @@ def get_from_steam_db(app_ids: list[int]) -> dict:
     return response.text
 
 
-def is_valid_steam_endpoint(app_id: int) -> bool:
-    """Pull games, ids, and prices from database"""
+def is_valid_endpoint(app_id: int) -> bool:
+    """check if valid endpoint"""
     response = requests.get(PRICE_FORMAT.format(app_id=app_id))
     return response.json().get(str(app_id)).get('success')
 
@@ -38,16 +38,15 @@ def is_valid_steam_endpoint(app_id: int) -> bool:
 #     print(response.json())
 
 
-def check_new_endpoints() -> list[int]:
+def get_endpoints() -> list[int]:
     pages = []
     app_id = 10
-    failures = 100
-    while failures > 0:
-        if is_valid_steam_endpoint(app_id):
+    while MAX_RESULTS > 0:
+        if is_valid_endpoint(app_id):
             pages.append(app_id)
+            MAX_RESULTS -= 1
         else:
-            failures -= 1
-        app_id += 10
+            app_id += 10
 
     print("no more results")
     print(f"last app id = {app_id}")
@@ -58,7 +57,7 @@ def check_new_endpoints() -> list[int]:
 
 def get_price_info(app_ids_matrix: list[list[int]]) -> list[dict]:
     with multiprocessing.Pool(NUM_PROCESSES_PRICE) as pool:
-        output = pool.map(get_from_steam_db, app_ids_matrix)
+        output = pool.map(get_from_db, app_ids_matrix)
 
     return output
 
@@ -66,11 +65,12 @@ def get_price_info(app_ids_matrix: list[list[int]]) -> list[dict]:
 if __name__ == "__main__":
     start_time = time.time()
 
-    app_ids = check_new_endpoints()
+    app_ids = get_endpoints()
     app_ids_matrix = np.array_split(app_ids, 2500)
     app_ids_matrix = [app_ids[x:x+25] for x in range(0, len(app_ids), 25)]
 
     print(get_price_info(app_ids_matrix))
+    # save to steam_products.json
 
     end_time = time.time()
     print(f"Time taken: {end_time - start_time}")

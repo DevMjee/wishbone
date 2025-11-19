@@ -5,3 +5,8 @@
 terraform/
 
 .csv
+
+data/
+
+__pycache__
+

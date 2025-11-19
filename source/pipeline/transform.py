@@ -7,75 +7,79 @@ from datetime import datetime
 
 
 DIRECTORY = 'data/'
-GOG_INPUT_FILE = 'gog_products.json'
-STEAM_INPUT_FILE = 'steam_products.json'
+SOURCE_FILES = ['gog_products.json']
 OUTPUT_PATH = f'{DIRECTORY}clean_data.json'
+TEST_DATA = 'test_products.json'
 
 
 def transform_source(filename: str) -> pd.DataFrame:
     # Read data from file
     with open(f'{DIRECTORY}{filename}') as f:
-        data = json.load(f)
+        source_data = json.load(f)
 
     # Create dataframe
-    all_data = pd.DataFrame(data)
+    source_dataframe = pd.DataFrame(source_data)
 
     # Drop NaN values
-    all_data.dropna(subset=['base_price_gbp_pence'], inplace=True)
+    source_dataframe.dropna(subset=['base_price_gbp_pence'], inplace=True)
 
     # Create boolean series to check which values to calculate discount for (avoid dividing by 0)
-    valid = (all_data["base_price_gbp_pence"] > 0) & \
-            (all_data["final_price_gbp_pence"] > 0)
+    valid = (source_dataframe["base_price_gbp_pence"] > 0)
 
     # Calculate discount percentage
-    all_data["discount_percent"] = (
-        (1 - all_data["final_price_gbp_pence"] /
-         all_data["base_price_gbp_pence"]) * 100
+    source_dataframe["discount_percent"] = (
+        (1 - source_dataframe["final_price_gbp_pence"] /
+         source_dataframe["base_price_gbp_pence"]) * 100
     ).where(valid).round().astype("Int64")
 
     # Fill NaN values in discount percentage with zero
-    all_data.loc[:, 'discount_percent'] = all_data['discount_percent'].fillna(
+    source_dataframe.loc[:, 'discount_percent'] = source_dataframe['discount_percent'].fillna(
         0)
 
     # Redefine dataframe with relevant columns
-    all_data = all_data[['name', 'base_price_gbp_pence',
-                         'final_price_gbp_pence', 'discount_percent']].copy()
+    source_dataframe = source_dataframe[['name', 'base_price_gbp_pence',
+                                         'final_price_gbp_pence', 'discount_percent']].copy()
 
     # Set platform name for all rows based on which file is being read
     # (e.g. reading from gog_products.json sets platform_name to 'gog')
-    all_data.loc[:, 'platform_name'] = filename.split('_')[0]
+    source_dataframe.loc[:, 'platform_name'] = filename.split('_')[0]
 
     # Timestamp data with today's date
-    all_data.loc[:, 'listing_date'] = datetime.today().date()
+    source_dataframe.loc[:, 'listing_date'] = datetime.today().date()
 
     # Cast prices to integers
-    all_data['base_price_gbp_pence'] = all_data['base_price_gbp_pence'].astype(
+    source_dataframe['base_price_gbp_pence'] = source_dataframe['base_price_gbp_pence'].astype(
         'Int64')
 
-    all_data['final_price_gbp_pence'] = all_data['final_price_gbp_pence'].astype(
+    source_dataframe['final_price_gbp_pence'] = source_dataframe['final_price_gbp_pence'].astype(
         'Int64')
 
     # Cast listing date to string
-    all_data['listing_date'] = all_data['listing_date'].astype('string')
+    source_dataframe['listing_date'] = source_dataframe['listing_date'].astype(
+        'string')
 
     # Rename and reorder columns to be in line with load script input
-    all_data.rename(columns={'name': 'game_name',
-                    'base_price_gbp_pence': 'retail_price', 'final_price_gbp_pence': 'final_price'}, inplace=True)
+    source_dataframe.rename(columns={'name': 'game_name',
+                                     'base_price_gbp_pence': 'retail_price', 'final_price_gbp_pence': 'final_price'}, inplace=True)
 
-    all_data = all_data[['game_name', 'retail_price', 'platform_name',
-                         'listing_date', 'discount_percent', 'final_price']].copy()
+    source_dataframe = source_dataframe[['game_name', 'retail_price', 'platform_name',
+                                         'listing_date', 'discount_percent', 'final_price']].copy()
 
-    return all_data
+    return source_dataframe
 
 
 def transform_all():
-    # Transform GoG data
-    transform_source(GOG_INPUT_FILE).to_json(
-        OUTPUT_PATH, indent=4, orient='records')
+    # Get dataframes from each source and append to list
+    all_data_sources = []
+    for source_filename in SOURCE_FILES:
+        all_data_sources.append(transform_source(source_filename))
 
-    # Transform Steam data
-    transform_source(STEAM_INPUT_FILE).to_json(
-        OUTPUT_PATH, indent=4, orient='records')
+    # Concatenate all source dataframes into one
+    all_data = pd.concat(all_data_sources)
+
+    # Export all data to json output
+    all_data.to_json(
+        OUTPUT_PATH, indent=4, lines=False, orient='records', mode='w')
 
 
 if __name__ == "__main__":

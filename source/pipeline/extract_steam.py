@@ -14,17 +14,25 @@ MAX_SEARCH = 500  # use totalresults(INITIAL_URL) when scaling up
 
 def total_results(url):
     """Function to grap the total number of pages for possible data endpoints"""
-    resp = requests.get(url)
-    raw_data = dict(resp.json())
+    response = requests.get(url)
+    raw_data = dict(response.json())
     results_count = raw_data['total_count']
     return int(results_count)
 
 
 def get_data(url):
-    """Funciton to obtain raw data from url html"""
-    resp = requests.get(url)
-    raw_data = dict(resp.json())
+    """Function to obtain raw data from url html"""
+    response = requests.get(url)
+    raw_data = dict(response.json())
     return raw_data['results_html']
+
+
+def convert_price(value: str) -> int:
+    """Convert 'Free' to 0 and string nums to ints"""
+    if value.isnumeric():
+        return int(value)
+    # if not numeric, assume free
+    return 0
 
 
 def parse(data):
@@ -48,10 +56,13 @@ def parse(data):
         except:
             price = latest_price
 
+        if price == 'Free':
+            price = 0
+
         extracted_game = {
             'name': title,
-            'base_price_gbp_pence': price,
-            'final_price_gbp_pence': latest_price,
+            'base_price_gbp_pence': convert_price(str(price)),
+            'final_price_gbp_pence': convert_price(str(latest_price)),
         }
 
         games_list.append(extracted_game)

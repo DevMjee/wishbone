@@ -12,7 +12,7 @@ STEAM_INPUT_FILE = 'steam_products.json'
 OUTPUT_PATH = f'{DIRECTORY}clean_data.json'
 
 
-def transform_data(filename: str) -> pd.DataFrame:
+def transform_source(filename: str) -> pd.DataFrame:
     # Read data from file
     with open(f'{DIRECTORY}{filename}') as f:
         data = json.load(f)
@@ -70,10 +70,11 @@ def transform_data(filename: str) -> pd.DataFrame:
 
 def transform_all():
     # Transform GoG data
-    transform_data(GOG_INPUT_FILE).to_json(
+    transform_source(GOG_INPUT_FILE).to_json(
         OUTPUT_PATH, indent=4, orient='records')
+
     # Transform Steam data
-    transform_data(STEAM_INPUT_FILE).to_json(
+    transform_source(STEAM_INPUT_FILE).to_json(
         OUTPUT_PATH, indent=4, orient='records')
 
 

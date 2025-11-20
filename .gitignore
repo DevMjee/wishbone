@@ -2,6 +2,17 @@
 
 .venv
 
-terraform/
+.terraform
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+terraform.tfvars
+variables.tf
 
 .csv
+
+data/
+
+__pycache__/
+
+.pytest_cache/

@@ -1,0 +1,9 @@
+awswrangler
+dotenv
+boto3
+psycopg2-binary
+aiohttp
+aiodns
+requests
+beautifulsoup4
+forex-python

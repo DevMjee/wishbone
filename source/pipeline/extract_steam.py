@@ -7,7 +7,7 @@ import requests
 
 URL = 'https://store.steampowered.com/search/results/?query&start={start}&filter=topsellers&infinite=1'
 INITIAL_URL = URL.format(start=0)
-FOLDER_PATH = 'data/'
+FOLDER_PATH = 'tmp/data/'
 FILEPATH = f'{FOLDER_PATH}steam_products.json'
 MAX_SEARCH = 500  # use totalresults(INITIAL_URL) when scaling up
 
@@ -80,6 +80,8 @@ def output(results: list[dict]) -> None:
 
 def export_steam() -> None:
     results = []
+
+    os.makedirs(FOLDER_PATH, exist_ok=True)
 
     for step in range(0, MAX_SEARCH, 50):
         top_selling = str(get_data(URL.format(start=step)))

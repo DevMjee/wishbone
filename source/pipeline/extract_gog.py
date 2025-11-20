@@ -9,7 +9,8 @@ from forex_python.converter import CurrencyRates
 
 BASE_DIR = "https://www.gogdb.org/data/products"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
-OUTPUT_PATH = 'data/gog_products.json'
+FOLDER_PATH = 'tmp/data/'
+OUTPUT_PATH = f'{FOLDER_PATH}gog_products.json'
 CONCURRENCY = 100
 TIMEOUT = 600
 LOAD_LIMIT = 50  # get every nth item from the products
@@ -152,7 +153,7 @@ def extract_gog():
 
     print(f"Extracted {len(results)} products")
 
-    os.makedirs("data", exist_ok=True)
+    os.makedirs(FOLDER_PATH, exist_ok=True)
 
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=4)

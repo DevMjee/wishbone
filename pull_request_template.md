@@ -2,7 +2,9 @@
 A brief summary of the changes.
 
 ## Closes issues
-#1 (change the number)
+Closes: #1 (change the number)
+Closes: #2
+...
 
 ## Changes
 - List the main changes here.

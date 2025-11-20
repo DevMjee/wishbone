@@ -118,5 +118,78 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-email-subscription-policy" {
 EOF
 }
 
+resource "aws_ecr_repository" "c20-wishbone-price-history-ecr" {
+  name = "c20-wishbone-price-history-ecr"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = "dev"
+    Project = "wishbone"
+  }
+}
+
+# policy so that only one image is in the ECR at a time
+resource "aws_ecr_lifecycle_policy" "c20-wishbone-price-history-lifecycle-policy" {
+  repository = aws_ecr_repository.c20-wishbone-price-history-ecr.name
+
+  policy = <<EOF
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+            "description": "Keep only latest image",
+            "selection": {
+                "tagStatus": "untagged",
+                "countType": "imageCountMoreThan",
+                "countNumber": 1
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_ecr_repository" "c20-wishbone-tracking-tl-ecr" {
+  name = "c20-wishbone-tracking-tl-ecr"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = "dev"
+    Project = "wishbone"
+  }
+}
+
+# policy so that only one image is in the ECR at a time
+resource "aws_ecr_lifecycle_policy" "c20-wishbone-tracking-tl-lifecycle-policy" {
+  repository = aws_ecr_repository.c20-wishbone-tracking-tl-ecr.name
+
+  policy = <<EOF
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+            "description": "Keep only latest image",
+            "selection": {
+                "tagStatus": "untagged",
+                "countType": "imageCountMoreThan",
+                "countNumber": 1
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}
+EOF
+}
 
 

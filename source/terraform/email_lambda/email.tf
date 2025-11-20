@@ -28,6 +28,16 @@ resource "aws_iam_role_policy_attachment" "wishbone-email-lambda-athena-access" 
   policy_arn = "arn:aws:iam::aws:policy/AmazonAthenaFullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "wishbone-email-lambda-rds-access" {
+  role = aws_iam_role.wishbone-email-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "wishbone-email-lambda-ses-access" {
+  role = aws_iam_role.wishbone-email-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+}
+
 resource "aws_iam_policy" "wishbone-email-s3-access" {
   name        = "wishbone-email-s3-access"
 
@@ -62,8 +72,11 @@ resource "aws_lambda_function" "wishbone-email-lambda" {
       ACCESS_KEY_ID = var.AWS_ACCESS_KEY
       AWS_SECRET_ACCESS_KEY_ID = var.AWS_SECRET_ACCESS_KEY
       BUCKET_NAME = var.BUCKET_NAME
-
-    
+      DB_NAME = var.DB_NAME
+      PORT = var.PORT
+      RDS_HOST = var.RDS_HOST
+      RDS_PASSWORD = var.RDS_PASSWORD
+      RDS_USERNAME = var.RDS_USERNAME
     }
   }
   memory_size = 1024

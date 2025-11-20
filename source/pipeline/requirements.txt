@@ -1,3 +1,9 @@
+requests
+dotenv
+pandas
+numpy
+bs4
+pylint
 aiohttp
 aiodns
 requests

@@ -14,9 +14,9 @@ def get_games_price_dropped() -> pd.DataFrame:
     athena_query = """WITH price_cte AS (
             SELECT game_id, recording_date, price, 
             LAG(price) OVER (PARTITION BY game_id ORDER BY recording_date) as prev_price
-            FROM listing
+            FROM listing_parquet
             )
-            SELECT DISTINCT game_id, game_name 
+            SELECT DISTINCT g.game_id, g.game_name 
                 FROM price_cte 
             JOIN game g on 
                 price_cte.game_id = g.game_id
@@ -35,11 +35,11 @@ def get_db_connection() -> connection:
     """Returns a live connection from the database."""
     load_dotenv()
     return connect(
-        host=environ['DB_HOST'],
+        host=environ['RDS_HOST'],
         port=5432,
-        user=environ['DB_USER'],
-        password=environ['DB_PASSWORD'],
-        dbname=environ['DB_NAME'],
+        user=environ['RDS_USERNAME'],
+        password=environ['RDS_PASSWORD'],
+        dbname=environ['DB_NAME']
     )
 
 
@@ -79,13 +79,8 @@ def lambda_handler(event, context):
     games_df = get_games_price_dropped()
 
     if games_df.empty:
-        return False
-    # use this false in step function to have it send no emails
+        return {"message": "no games dropped in price"}
 
     price_dropped_emails = get_all_emails_with_game(games_df)
 
-    return price_dropped_emails
-
-
-if __name__ == "__main__":
-    pass
+    ses = boto3.client("ses")

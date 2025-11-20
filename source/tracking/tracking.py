@@ -8,10 +8,10 @@ from psycopg2.extensions import connection
 def get_connection() -> connection:
     conn = psycopg2.connect(f"""
                             dbname={environ['DB_NAME']}
-                            user={environ['DB_USER']}
-                            password={environ['DB_PASSWORD']}
-                            host={environ['DB_HOST']}
-                            port={environ['DB_PORT']}
+                            user={environ['RDS_USERNAME']}
+                            password={environ['RDS_PASSWORD']}
+                            host={environ['RDS_HOST']}
+                            port={environ['PORT']}
                             """)
     return conn
 
@@ -59,10 +59,10 @@ def remove_email(email: str, conn: connection) -> dict:
 
 def lambda_handler(event, context):
     conn = get_connection()
-    if event.get('subscribe') is True:
+    if event.get('subscribe') == "True":
         return subscribe_to_game(event.get('game_id'), event.get('email'), conn)
 
-    elif event.get('subscribe') is False:
+    elif event.get('subscribe') == "False":
         return remove_email(event.get('email'), conn)
 
     return {'status': 'error', 'msg': ''}

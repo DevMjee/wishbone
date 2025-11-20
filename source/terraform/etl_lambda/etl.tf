@@ -45,5 +45,5 @@ resource "aws_lambda_function" "wishbone-etl-lambda" {
     }
   }
   memory_size = 1024
-  timeout = 60
+  timeout = 300
 }

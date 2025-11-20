@@ -57,4 +57,5 @@ resource "aws_glue_crawler" "wishbone-crawler" {
   s3_target {
     path = "s3://c20-wishbone-s3"
   }
+  schedule = "cron(0 0 * * ? *)"
 }

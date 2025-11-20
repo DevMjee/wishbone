@@ -77,6 +77,8 @@ resource "aws_lambda_function" "wishbone-email-lambda" {
       RDS_HOST = var.RDS_HOST
       RDS_PASSWORD = var.RDS_PASSWORD
       RDS_USERNAME = var.RDS_USERNAME
+      SENDER_EMAIL = var.SENDER_EMAIL
+
     }
   }
   memory_size = 1024

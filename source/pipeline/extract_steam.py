@@ -32,7 +32,9 @@ def convert_price(value: str) -> int:
     if value.isnumeric():
         return int(value)
     # if not numeric, assume free
-    return 0
+    if value == 'Free':
+        return 0
+    raise ValueError(f'Unexpected input: {value}')
 
 
 def parse(data):
@@ -55,9 +57,6 @@ def parse(data):
                 'div', {'class': 'discount_original_price'}).text.strip().split('£')[-1].replace('.', '')
         except:
             price = latest_price
-
-        if price == 'Free':
-            price = 0
 
         extracted_game = {
             'name': title,

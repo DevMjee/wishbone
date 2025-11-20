@@ -2,5 +2,5 @@ requests
 dotenv
 pandas
 numpy
-b4
+bs4
 pylint

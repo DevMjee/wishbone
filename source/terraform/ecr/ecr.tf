@@ -29,7 +29,7 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-etl-lifecycle-policy" {
             "rulePriority": 1,
             "description": "Keep only latest image",
             "selection": {
-                "tagStatus": "untagged",
+                "tagStatus": "any",
                 "countType": "imageCountMoreThan",
                 "countNumber": 1
             },
@@ -67,7 +67,7 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-dashboard-lifecycle-policy" {
             "rulePriority": 1,
             "description": "Keep only latest image",
             "selection": {
-                "tagStatus": "untagged",
+                "tagStatus": "any",
                 "countType": "imageCountMoreThan",
                 "countNumber": 1
             },
@@ -105,7 +105,7 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-email-subscription-policy" {
             "rulePriority": 1,
             "description": "Keep only latest image",
             "selection": {
-                "tagStatus": "untagged",
+                "tagStatus": "any",
                 "countType": "imageCountMoreThan",
                 "countNumber": 1
             },
@@ -142,7 +142,7 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-price-history-lifecycle-policy
             "rulePriority": 1,
             "description": "Keep only latest image",
             "selection": {
-                "tagStatus": "untagged",
+                "tagStatus": "any",
                 "countType": "imageCountMoreThan",
                 "countNumber": 1
             },
@@ -179,7 +179,7 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-tracking-tl-lifecycle-policy" 
             "rulePriority": 1,
             "description": "Keep only latest image",
             "selection": {
-                "tagStatus": "untagged",
+                "tagStatus": "any",
                 "countType": "imageCountMoreThan",
                 "countNumber": 1
             },

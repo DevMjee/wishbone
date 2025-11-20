@@ -1,10 +1,10 @@
-FROM public.ecr.aws/lambda/python:3.8
+FROM public.ecr.aws/lambda/python:3.12
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY extract_steam.py extract_epic.py transform.py load.py pipeline.py ./
+COPY extract_steam.py extract_gog.py transform.py load.py pipeline.py ./
 
 CMD [ "pipeline.lambda_handler" ]

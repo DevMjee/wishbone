@@ -12,15 +12,15 @@ FILEPATH = f'{FOLDER_PATH}steam_products.json'
 MAX_SEARCH = 500  # use totalresults(INITIAL_URL) when scaling up
 
 
-def total_results(url):
+def total_results(url: str) -> int:
     """Function to grap the total number of pages for possible data endpoints"""
     response = requests.get(url)
     raw_data = dict(response.json())
-    results_count = raw_data['total_count']
-    return int(results_count)
+    results_count = int(raw_data['total_count'])
+    return results_count
 
 
-def get_data(url):
+def get_data(url: str) -> dict:
     """Function to obtain raw data from url html"""
     response = requests.get(url)
     raw_data = dict(response.json())
@@ -37,7 +37,7 @@ def convert_price(value: str) -> int:
     raise ValueError(f'Unexpected input: {value}')
 
 
-def parse(data):
+def parse(data: str) -> list[dict]:
     """Function to scrape top selling games and output list of dicts with prices and titles"""
     games_list = []
     soup = BeautifulSoup(data, 'html.parser')
@@ -55,7 +55,7 @@ def parse(data):
         try:
             price = game.find(
                 'div', {'class': 'discount_original_price'}).text.strip().split('£')[-1].replace('.', '')
-        except:
+        except AttributeError:  # there is no discount, then .text attribute does not work
             price = latest_price
 
         extracted_game = {
@@ -69,7 +69,7 @@ def parse(data):
     return games_list
 
 
-def output(results) -> None:
+def output(results: list[dict]) -> None:
     """Function to create output json file"""
     if not os.path.isdir(FOLDER_PATH):
         os.mkdir(FOLDER_PATH)
@@ -82,10 +82,14 @@ if __name__ == '__main__':
     results = []
 
     for step in range(0, MAX_SEARCH, 50):
-        top_selling = get_data(URL.format(start=step))
+        top_selling = str(get_data(URL.format(start=step)))
         results.append(parse(top_selling))
         print('Results Scraped: ', step)
 
-    results = [game for list_of_50_games in results for game in list_of_50_games]
+    # results = [game for list_of_50_games in results for game in list_of_50_games] # i miss you, list comp
+    flattened_results = []
+    for list_of_50_games in results:
+        for game in list_of_50_games:
+            flattened_results.append(game)
 
-    output(results)
+    output(flattened_results)

@@ -27,7 +27,8 @@ resource "aws_iam_policy" "wishbone-price-history-lambda-s3-access" {
       {
         Action = [
           "s3:GetObject",
-          "s3:PutObject"
+          "s3:PutObject",
+          "s3:DeleteObject"
         ]
         Effect   = "Allow"
         Resource = ["arn:aws:s3:::c20-wishbone-s3","arn:aws:s3:::c20-wishbone-s3/*"]

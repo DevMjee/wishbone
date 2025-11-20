@@ -1,0 +1,5 @@
+pandas
+awswrangler
+psycopg2-binary
+python-dotenv
+boto3

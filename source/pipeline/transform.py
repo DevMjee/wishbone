@@ -80,7 +80,7 @@ def transform_source(filename: str) -> pd.DataFrame:
 def transform_all():
     """Iterates through available sources and transforms raw data from them, saving to JSON"""
     # Check for data folder
-    if not os.path.exists(DIRECTORY):
+    if not os.path.exists(f'/var/task/{DIRECTORY}'):
         raise FileNotFoundError("'data/' directory does not exist")
 
     # Get dataframes from each source and append to list

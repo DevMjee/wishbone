@@ -6,7 +6,7 @@ boto3
 requests
 dotenv
 numpy
-b4
+bs4
 pylint
 aiohttp
 aiodns

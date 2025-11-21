@@ -16,6 +16,7 @@ session = boto3.Session(
 S3_BUCKET_NAME = environ["BUCKET_NAME"]
 
 
+@st.cache_data()
 def get_data():
     data = wr.athena.read_sql_query("""
     select g.game_name, l.price, l.recording_date
@@ -47,7 +48,7 @@ def unsub_button():
 def create_price_vs_time_chart(game_filter):
     data = get_data()
     data['recording_date'] = data['recording_date'].dt.date
-    data['price'] = data['price']/100
+    data['price'] = data['price'].astype(float)/100
     data = data[data['Game'].isin(game_filter)]
 
     chart = alt.Chart(data).mark_line().encode(

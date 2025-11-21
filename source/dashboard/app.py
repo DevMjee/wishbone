@@ -39,9 +39,10 @@ def get_data(conn: connection):
     return data
 
 
-def filter_data(game_filter, conn):
+def filter_and_format_data(game_filter, conn):
 
     data = get_data(conn)
+    data['price'] = data['price'].astype(float)/100
 
     data = data[data['game_name'].isin(game_filter)]
 
@@ -63,7 +64,10 @@ def create_current_price_metrics():
         with st.expander(label="Select Games"):
             game_filter = create_game_name_filter(db_conn)
 
-    game_name, game_price = filter_data(game_filter, db_conn)
+    game_name, game_price = filter_and_format_data(game_filter, db_conn)
     st.metric("Game", "Current Price")
     for i in range(len(game_name)):
         st.metric(f"{game_name[i]}", f"{game_price[i]}")
+
+
+create_current_price_metrics()

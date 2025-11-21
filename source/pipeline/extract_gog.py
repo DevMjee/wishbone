@@ -14,6 +14,7 @@ OUTPUT_PATH = f'{FOLDER_PATH}gog_products.json'
 CONCURRENCY = 100
 TIMEOUT = 600
 LOAD_LIMIT = 50  # get every nth item from the products
+DEFAULT_RATE = 0.77  # default in case Forex API is down
 
 
 async def fetch_json(session: aiohttp.ClientSession, url: str):
@@ -145,7 +146,7 @@ def extract_gog():
         usd_to_gbp_rate = c.get_rate("USD", "GBP")
     except:
         print("RatesNotAvailableError - Forex API is currently unavailable")
-        usd_to_gbp_rate = 0.77  # default in case Forex API is down
+        usd_to_gbp_rate = DEFAULT_RATE
 
     print(f"Current USD -> GBP rate: {usd_to_gbp_rate}")
 

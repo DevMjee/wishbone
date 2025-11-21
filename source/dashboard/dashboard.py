@@ -1,10 +1,13 @@
 """Code for the Streamlit dashboard"""
 import streamlit as st
 import boto3
+import aioboto3
 import awswrangler as wr
 from os import environ
 from dotenv import load_dotenv
 import altair as alt
+import json
+import asyncio
 
 load_dotenv()
 session = boto3.Session(
@@ -28,6 +31,39 @@ def get_data():
     })
 
     return data
+
+
+async def trigger_unsubscribe(email: str) -> None:
+    payload_unsubscribe = {
+        'subscribe': 'False',
+        'email': email
+    }
+    async with aioboto3.client('lambda') as client:
+        response = await client.invoke(
+            FunctionName='wishbone-tracking-lambda',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(payload_unsubscribe)
+        )
+
+    response_payload = await response['Payload'].read()
+    return json.loads(response_payload)
+
+
+def run_unsubscribe(email: str):
+    return asyncio.run(trigger_unsubscribe(email))
+
+
+def subscription():
+    email = st.text_input('Email', "example@domain.com", )
+    unsub = st.button(
+        label='Unsubscribe from all',
+        help='click to remove your email from our system'
+    )
+    response = {'status': 'success', 'msg': 'button not pressed yet'}
+    if unsub:
+        response = run_unsubscribe(email)
+
+    return response
 
 
 def create_price_vs_time_chart(game_filter):
@@ -56,6 +92,8 @@ def create_dashbaord():
         game_filter = create_game_name_filter()
     chart = create_price_vs_time_chart(game_filter)
     st.altair_chart(chart)
+    response = subscription()
+    st.text(response)
 
 
 if __name__ == "__main__":

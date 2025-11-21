@@ -2,3 +2,5 @@ altair
 streamlit
 python-dotenv
 boto3
+aioboto3
+asyncio

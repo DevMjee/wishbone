@@ -25,7 +25,7 @@ def run_unsubscribe(email: str):
 
 def run_subscribe(email: str, game_id):
     payload = {
-        'subscribe': 'False',
+        'subscribe': 'True',
         'email': email,
         'game_id': str(game_id)
     }

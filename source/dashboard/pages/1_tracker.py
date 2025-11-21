@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import altair as alt
 import pandas as pd
 from backend import run_unsubscribe
+from backend import run_subscribe
 
 load_dotenv()
 session = boto3.Session(
@@ -19,21 +20,24 @@ S3_BUCKET_NAME = environ["BUCKET_NAME"]
 @st.cache_data()
 def get_data():
     data = wr.athena.read_sql_query("""
-    select g.game_name, l.price, l.recording_date
+    select g.game_id,g.game_name, l.price, l.recording_date, p.platform_name
                                     from listing l
                                     join game g
                                     on g.game_id=l.game_id
+                                    join platform p
+                                    on p.platform_id=l.platform_id
+                                    
 """, database='wishbone-glue-db')
 
     data = data.rename(columns={
         "game_name": "Game",
     })
-
+    data = data.drop_duplicates()
     return data
 
 
-def unsub_button():
-    email = st.text_input('Email', "example@domain.com", )
+def unsub_button(email):
+
     unsub = st.button(
         label='Unsubscribe from all',
         help='click to remove your email from our system'
@@ -43,6 +47,27 @@ def unsub_button():
         response = run_unsubscribe(email)
 
     return response
+
+
+def sub_selects():
+    games = get_data()['Game']
+    sub = st.multiselect(
+        label="Select Games to subscribe to",
+        options=games
+    )
+    return sub
+
+
+def sub_button(email, games):
+    game_ids = get_data()[['game_id', 'Game']]
+    filtered_ids = game_ids[game_ids['Game'].isin(games)]
+    sub = st.button(
+        label="Subscribe to the selected games"
+    )
+    response = {'status': 'success', 'msg': ''}
+    if sub:
+        for game_id in filtered_ids["game_id"]:
+            run_subscribe(email, game_id)
 
 
 def create_price_vs_time_chart(game_filter):
@@ -64,12 +89,13 @@ def create_price_vs_time_chart(game_filter):
 
 def create_game_name_filter():
     games = get_data()['Game'].unique()
+
     games_filter = st.multiselect(
         "Select Game", games, default=None, max_selections=10)
     return games_filter
 
 
-def create_dashbaord():
+def create_dashboard():
 
     st.set_page_config(page_title="Game Tracker", page_icon="👻")
 
@@ -78,9 +104,12 @@ def create_dashbaord():
             game_filter = create_game_name_filter()
     chart = create_price_vs_time_chart(game_filter)
     st.altair_chart(chart)
-    response = unsub_button()
+    email = st.text_input('Email', "example@domain.com", )
+    games = sub_selects()
+    sub_button(email, games)
+    response = unsub_button(email)
     st.text(response.get('msg'))
     print(response)
 
 
-create_dashbaord()
+create_dashboard()

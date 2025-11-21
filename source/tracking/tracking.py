@@ -6,6 +6,7 @@ from psycopg2.extensions import connection
 
 
 def get_connection() -> connection:
+    """Connects to the RDS"""
     conn = psycopg2.connect(f"""
                             dbname={environ['DB_NAME']}
                             user={environ['RDS_USERNAME']}
@@ -17,6 +18,7 @@ def get_connection() -> connection:
 
 
 def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
+    """Adds the email to the tracking table with the game ID"""
     insert_query = """
                     INSERT INTO wishbone."tracking"(
                         email, game_id)
@@ -40,6 +42,7 @@ def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
 
 
 def remove_email(email: str, conn: connection) -> dict:
+    """Removes the users email from the tracking table"""
     delete_query = """
                     DELETE FROM wishbone."tracking"
                     WHERE email = %s;

@@ -30,6 +30,7 @@ CREATE TABLE listing(
     discount_percent INT NOT NULL,
     recording_date DATE CHECK (recording_date <= CURRENT_DATE),
     PRIMARY KEY(listing_id),
+    UNIQUE (game_id, platform_id, discount_percent, price, recording_date),
     FOREIGN KEY (game_id) REFERENCES game(game_id),
     FOREIGN KEY (platform_id) REFERENCES platform(platform_id)
 );

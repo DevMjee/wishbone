@@ -1,0 +1,13 @@
+requests
+dotenv
+pandas
+numpy
+bs4
+pylint
+aiohttp
+aiodns
+requests
+beautifulsoup4
+forex-python
+pytest
+pytest-asyncio

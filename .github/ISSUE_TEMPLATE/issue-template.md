@@ -11,11 +11,8 @@ assignees: ''
 Enter description here, include user stories if applicable
 
 # Checklist
-- optional
-- example
-
-# Urgency
-- High / Low
+- [ ] optional
+- [ ] example
 
 # Deadline
-Finish by today afternoon (17/11/2025)
+17/11/2025 (change date)

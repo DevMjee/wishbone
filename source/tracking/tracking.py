@@ -42,8 +42,7 @@ def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
 def remove_email(email: str, conn: connection) -> dict:
     delete_query = """
                     DELETE FROM wishbone."tracking"
-                    WHERE email = %s
-                    RETURNING tracking_id;
+                    WHERE email = %s;
                     """
 
     cur = conn.cursor()

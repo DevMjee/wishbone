@@ -156,7 +156,7 @@ def extract_gog():
 
     os.makedirs(FOLDER_PATH, exist_ok=True)
 
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+    with open(OUTPUT_PATH, "w+", encoding="utf-8") as f:
         json.dump(results, f, indent=4)
 
     print("Saved results to products.json")

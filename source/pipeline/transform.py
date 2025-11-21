@@ -2,14 +2,18 @@
 
 import json
 import os
-from datetime import datetime
+from datetime import date, timedelta
 import pandas as pd
 
 
-DIRECTORY = 'data/'
+DIRECTORY = '/tmp/data/'
 SOURCE_FILES = ['gog_products.json', 'steam_products.json']
 OUTPUT_PATH = f'{DIRECTORY}clean_data.json'
 TEST_DATA = 'test_products.json'
+TODAY = date.today()
+# for testing historical pipeline deletion
+YESTERDAY = TODAY - timedelta(days=1)
+# TODAY = YESTERDAY
 
 
 def transform_source(filename: str) -> pd.DataFrame:
@@ -49,7 +53,7 @@ def transform_source(filename: str) -> pd.DataFrame:
     source_dataframe.loc[:, 'platform_name'] = filename.split('_')[0]
 
     # Timestamp data with today's date
-    source_dataframe.loc[:, 'listing_date'] = datetime.today().date()
+    source_dataframe.loc[:, 'listing_date'] = TODAY
 
     # Cast prices to integers
     source_dataframe['base_price_gbp_pence'] = source_dataframe['base_price_gbp_pence'].astype(
@@ -75,10 +79,6 @@ def transform_source(filename: str) -> pd.DataFrame:
 
 def transform_all():
     """Iterates through available sources and transforms raw data from them, saving to JSON"""
-    # Check for data folder
-    if not os.path.exists(DIRECTORY):
-        raise FileNotFoundError("'data/' directory does not exist")
-
     # Get dataframes from each source and append to list
     all_data_sources = []
     for source_filename in SOURCE_FILES:

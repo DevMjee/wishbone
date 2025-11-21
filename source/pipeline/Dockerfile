@@ -5,6 +5,8 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+RUN mkdir data/
+
 COPY extract_steam.py extract_gog.py transform.py load.py pipeline.py ./
 
 CMD [ "pipeline.lambda_handler" ]

@@ -9,9 +9,12 @@ from forex_python.converter import CurrencyRates
 
 BASE_DIR = "https://www.gogdb.org/data/products"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
-OUTPUT_PATH = 'data/gog_products.json'
+FOLDER_PATH = '/tmp/data/'
+OUTPUT_PATH = f'{FOLDER_PATH}gog_products.json'
 CONCURRENCY = 100
 TIMEOUT = 600
+LOAD_LIMIT = 50  # get every nth item from the products
+DEFAULT_RATE = 0.77  # default in case Forex API is down
 
 
 async def fetch_json(session: aiohttp.ClientSession, url: str):
@@ -38,7 +41,7 @@ async def fetch_json(session: aiohttp.ClientSession, url: str):
         return None
 
 
-async def extract_product(session: aiohttp.ClientSession, product_id: int, usd_to_gbp: float) -> dict | None:
+async def extract_product(session: aiohttp.ClientSession, product_id: int, usd_to_gbp: float) -> dict:
     """Extract product.json + prices.json from a single product folder."""
     product_url = f"{BASE_DIR}/{product_id}/product.json"
     prices_url = f"{BASE_DIR}/{product_id}/prices.json"
@@ -134,19 +137,26 @@ def extract_gog():
     print("Fetching all product IDs...")
     product_ids = get_all_product_ids()
     print(f"Found {len(product_ids)} products")
+    product_ids = product_ids[::LOAD_LIMIT]
+    print(f"Using {len(product_ids)} products")
 
     print("Fetching USD -> GBP conversion rate")
-    c = CurrencyRates()
-    usd_to_gbp_rate = c.get_rate("USD", "GBP")
+    try:
+        c = CurrencyRates()
+        usd_to_gbp_rate = c.get_rate("USD", "GBP")
+    except:
+        print("RatesNotAvailableError - Forex API is currently unavailable")
+        usd_to_gbp_rate = DEFAULT_RATE
+
     print(f"Current USD -> GBP rate: {usd_to_gbp_rate}")
 
     results = asyncio.run(extract_batch(product_ids, usd_to_gbp_rate))
 
     print(f"Extracted {len(results)} products")
 
-    os.makedirs("data", exist_ok=True)
+    os.makedirs(FOLDER_PATH, exist_ok=True)
 
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+    with open(OUTPUT_PATH, "w+", encoding="utf-8") as f:
         json.dump(results, f, indent=4)
 
     print("Saved results to products.json")

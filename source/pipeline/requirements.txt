@@ -4,6 +4,7 @@ pandas
 numpy
 bs4
 pylint
+psycopg2-binary
 aiohttp
 aiodns
 requests

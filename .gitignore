@@ -11,6 +11,8 @@ variables.tf
 
 .csv
 
+*.json
+
 data/
 
 __pycache__/

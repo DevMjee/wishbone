@@ -1,0 +1,4 @@
+altair
+streamlit
+python-dotenv
+boto3

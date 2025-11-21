@@ -103,7 +103,7 @@ def send_out_email(email_address, email_body, game_name):
             },
             "Subject": {
                 "Charset": CHARSET,
-                "Data": f"Wishbone Alert - {game_name}",
+                "Data": f"{game_name} is on sale!",
             },
         },
     )
@@ -126,7 +126,7 @@ def lambda_handler(event, context):
         new_price = format_pennies_to_pounds(entry["new_price"])
         old_price = format_pennies_to_pounds(entry["old_price"])
         email_body = create_html_email(
-            game_name, old_price, new_price, "www.wishbone.com")
+            game_name, old_price, new_price)
         if emails is None:
             continue
 

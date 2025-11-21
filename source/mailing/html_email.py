@@ -1,7 +1,7 @@
 """creates the html email body"""
 
 
-def create_html_email(game_name, old_price, new_price, wishbone_url):
+def create_html_email(game_name, old_price, new_price):
     """creates the html email to be sent by wishbone"""
 
     email_template = f"""
@@ -71,7 +71,7 @@ def create_html_email(game_name, old_price, new_price, wishbone_url):
 
                 <div class="divider"></div>
 
-                <h1>Price Drop Alert – {game_name}</h1>
+                <h1>Wishbone had detected a drop in price for {game_name}</h1>
 
                 <p>
                     The game <strong>{game_name}</strong> you have been tracking has dropped in price!
@@ -82,8 +82,7 @@ def create_html_email(game_name, old_price, new_price, wishbone_url):
                 </p>
 
                 <p>
-                    Check it out on Wishbone:<br>
-                    <a href="{wishbone_url}">{wishbone_url}</a>
+                    Check it out on <a href="www.google.com">Wishbone</a>
                 </p>
 
                 <div class="divider"></div>

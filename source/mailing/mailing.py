@@ -6,17 +6,19 @@ from dotenv import load_dotenv
 import pandas as pd
 import awswrangler
 import boto3
+from html_email import create_html_email
+
+load_dotenv()
 
 
 def get_games_price_dropped() -> pd.DataFrame:
     """gets the ids and name of the games that have dropped in price"""
-    load_dotenv()
     athena_query = """WITH price_cte AS (
             SELECT game_id, recording_date, price, 
             LAG(price) OVER (PARTITION BY game_id ORDER BY recording_date) as prev_price
             FROM listing_parquet
             )
-            SELECT DISTINCT g.game_id, g.game_name 
+            SELECT DISTINCT g.game_id, g.game_name, price_cte.price as new_price, price_cte.prev_price as old_price
                 FROM price_cte 
             JOIN game g on 
                 price_cte.game_id = g.game_id
@@ -33,7 +35,6 @@ def get_games_price_dropped() -> pd.DataFrame:
 
 def get_db_connection() -> connection:
     """Returns a live connection from the database."""
-    load_dotenv()
     return connect(
         host=environ['RDS_HOST'],
         port=5432,
@@ -63,59 +64,79 @@ def get_all_emails_with_game(game_id_df: pd.DataFrame) -> list[dict]:
     for _, row in game_id_df.iterrows():
         game_id = row["game_id"]
         game_name = row["game_name"]
+        new_price = row["new_price"]
+        old_price = row["old_price"]
 
         emails_df = get_emails_for_dropped_price(game_id)
 
         list_emails = emails_df['email'].tolist()
 
         game_email_list.append(
-            {"game_id": game_id, "game_name": game_name, "emails": list_emails})
+            {"game_id": game_id, "game_name": game_name, "new_price": new_price, "old_price": old_price, "emails": list_emails})
 
     return game_email_list
 
 
+def format_pennies_to_pounds(pennies: int) -> str:
+    """takes the price in pennies and returns in pounds with £ symbol"""
+
+    pounds = pennies / 100
+
+    return f"£{pounds:.2f}"
+
+
+def send_out_email(email_address, email_body, game_name):
+    """sends the HTML email using boto3 to alert on drop of price"""
+    SENDER_EMAIL = environ["SENDER_EMAIL"]
+    CHARSET = "UTF-8"
+    ses_client = boto3.client("ses", region_name="eu-west-2")
+
+    ses_client.send_email(
+        Source=SENDER_EMAIL,
+        Destination={"ToAddresses": [email_address]},
+        Message={
+            "Body": {
+                "Html": {
+                    "Charset": CHARSET,
+                    "Data": email_body,
+                }
+            },
+            "Subject": {
+                "Charset": CHARSET,
+                "Data": f"Wishbone Alert - {game_name}",
+            },
+        },
+    )
+
+
 def lambda_handler(event, context):
-    """performs an athena query, a rds query and then returns """
+    """performs an athena query, a rds query and then sends emails if necessary """
     games_df = get_games_price_dropped()
 
     if games_df.empty:
-        return {"message": "no games dropped in price"}
+        return {"message": "No games dropped in price"}
 
     price_dropped_emails = get_all_emails_with_game(games_df)
-
-    ses_client = boto3.client("ses", region_name="eu-west-2")
-
-    SENDER_EMAIL = "ronnm03@gmail.com"
-
-    CHARSET = "UTF-8"
 
     total_sent = 0
 
     for entry in price_dropped_emails:
+        game_name = entry["game_name"]
         emails = entry["emails"]
+        new_price = format_pennies_to_pounds(entry["new_price"])
+        old_price = format_pennies_to_pounds(entry["old_price"])
+        email_body = create_html_email(
+            game_name, old_price, new_price, "www.wishbone.com")
         if emails is None:
             continue
 
         for email in emails:
-            ses_client.send_email(
-                Source=SENDER_EMAIL,
-                Destination={"ToAddresses": [email]},
-                Message={
-                    "Body": {
-                        "Text": {
-                            "Charset": CHARSET,
-                            "Data": "Price dropped game!! A game you are tracking has dropped in price!",
-                        }
-                    },
-                    "Subject": {
-                        "Charset": CHARSET,
-                        "Data": "PRICE DROP!!!",
-                    },
-                },
-            )
+
+            send_out_email(email, email_body, game_name)
+
             total_sent += 1
 
-    return {"message": f"send {total_sent} emails"}
+    return {"message": f"Sent {total_sent} emails"}
 
 
 if __name__ == "__main__":

@@ -108,7 +108,7 @@ def create_dashboard():
     email = st.text_input('Email', "example@domain.com", )
     games = sub_selects()
     sub_button(email, games)
-    response = unsub_button()
+    response = unsub_button(email)
     if not response.get('status') == 'idle':
         st.text(response.get('msg'))
 

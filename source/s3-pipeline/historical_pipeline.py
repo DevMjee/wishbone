@@ -23,7 +23,10 @@ DB_PORT = os.getenv("DB_PORT")
 
 CONNECTION_STRING = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-engine = create_engine(CONNECTION_STRING)
+
+def get_engine():
+    """Create DB engine"""
+    create_engine(CONNECTION_STRING)
 
 
 def extract_table(table: str) -> pd.DataFrame:
@@ -32,6 +35,8 @@ def extract_table(table: str) -> pd.DataFrame:
         raise ValueError(f"Invalid table name: {table}")
 
     query = text(f"SELECT * FROM wishbone.{table};")
+
+    engine = get_engine()
     df = pd.read_sql(query, engine)
 
     print(f"Extracted data from {table}: {len(df)} rows")
@@ -86,6 +91,8 @@ def delete_old_listing_data():
             DELETE FROM wishbone.listing
             WHERE recording_date::date <> :today;        
     """)
+
+    engine = get_engine()
 
     with engine.begin() as conn:
         result = conn.execute(query, {"today": today})

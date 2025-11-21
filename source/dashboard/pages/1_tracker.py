@@ -99,7 +99,7 @@ def create_dashbaord():
     chart = create_price_vs_time_chart(game_filter)
     st.altair_chart(chart)
     response = subscription()
-    st.text(response)
+    print(response)
 
 
 create_dashbaord()

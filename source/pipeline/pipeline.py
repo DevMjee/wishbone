@@ -7,7 +7,7 @@ import os
 
 
 def lambda_handler(event, context):
-    if not os.path.exists('/tmp/data/'):
+    if not os.path.exists('/var/task/tmp/data/'):
         os.makedirs('/tmp/data/')
 
     try:

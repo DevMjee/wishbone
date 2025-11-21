@@ -57,7 +57,7 @@ def get_emails_for_dropped_price(g_id: int) -> pd.DataFrame:
 
 
 def get_all_emails_with_game(game_id_df: pd.DataFrame) -> list[dict]:
-    """returns a json style thing of games associated with each email"""
+    """returns a list of dictionaries of each game and the associated emails"""
 
     game_email_list = []
 

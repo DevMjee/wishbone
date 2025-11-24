@@ -87,4 +87,5 @@ def create_current_price_metrics() -> None:
     st.dataframe(data, hide_index=True)
 
 
+# something
 create_current_price_metrics()

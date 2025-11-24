@@ -9,7 +9,7 @@ URL = 'https://store.steampowered.com/search/results/?query&start={start}&filter
 INITIAL_URL = URL.format(start=0)
 FOLDER_PATH = '/tmp/data/'
 FILEPATH = f'{FOLDER_PATH}steam_products.json'
-MAX_SEARCH = 500  # use totalresults(INITIAL_URL) when scaling up
+MAX_SEARCH = 50  # use totalresults(INITIAL_URL) when scaling up
 
 
 def get_total_page_count(url: str) -> int:

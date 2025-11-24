@@ -13,7 +13,7 @@ FOLDER_PATH = '/tmp/data/'
 OUTPUT_PATH = f'{FOLDER_PATH}gog_products.json'
 CONCURRENCY = 100
 TIMEOUT = 600
-LOAD_LIMIT = 50  # get every nth item from the products
+LOAD_LIMIT = 300  # get every nth item from the products
 DEFAULT_RATE = 0.77  # default in case Forex API is down
 
 

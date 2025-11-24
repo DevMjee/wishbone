@@ -5,9 +5,25 @@ import os
 from bs4 import BeautifulSoup
 import requests
 
+URL = 'https://store.steampowered.com/app/1817070/Marvels_SpiderMan_Remastered/'
+URL = 'https://store.steampowered.com/app/632360/Risk_of_Rain_2/'
+URL = 'https://store.steampowered.com/app/80/CounterStrike_Condition_Zero/'
 URL = 'https://store.steampowered.com/app/730/CounterStrike_2/'
-FOLDER_PATH = 'data/'
+
+#  user gives url, we find other url from this,
+
+FOLDER_PATH = 'data/'  # needs to be /tmp/data for lambda
 FILEPATH = f'{FOLDER_PATH}steam_addon.json'
+SEARCH_TERM = 'stardew valley'  # user given
+STEAM_SEARCH = 'https://store.steampowered.com/search?term={search_term}'
+
+
+def get_data_from_term():
+    """Get data from search term"""
+    # build url
+    response = requests.get(STEAM_SEARCH.format(search_term=SEARCH_TERM))
+    raw_data = response.text
+    input(raw_data)
 
 
 def get_data(url: str) -> str:
@@ -30,40 +46,26 @@ def convert_price(value: str) -> int:
     raise ValueError(f'Unexpected input: {value}')
 
 
-def parse(data: str) -> list[dict]:
+def parse_steam(data: str) -> list[dict]:
     """Function to scrape top selling games and output list of dicts with prices and titles"""
     games_list = []
     soup = BeautifulSoup(data, 'html.parser')
+    # game not on discount
 
-    games = soup.find_all("div", {"class": "game_purchase_price price"})
-    for game in games:
-        input(game.get_text().strip())
-    if not games:
-        raise ValueError(
-            f'{data} contains no valid items with searched for tag)')
+    #  removes 'On Steam' from title
+    title = soup.title.string.strip()[:-9]
 
-    for game in games:
-        title = game.find('span', {'class': 'title'}).text
-        latest_price = game.find(
-            'div', {'class': 'discount_final_price'})
-        if latest_price:
-            latest_price = latest_price.text.strip().split(
-                '£')[-1].replace('.', '')
-        else:
-            continue  # skip this game if no listed price
-        try:
-            price = game.find(
-                'div', {'class': 'discount_original_price'}).text.strip().split('£')[-1].replace('.', '')
-        except AttributeError:  # there is no discount, then .text attribute does not work
-            price = latest_price
+    original_price = soup.find(
+        "div", {"class": "discount_original_price"})
 
-        extracted_game = {
-            'name': title,
-            'base_price_gbp_pence': convert_price(str(price)),
-            'final_price_gbp_pence': convert_price(str(latest_price)),
-        }
+    if original_price:  # if on discount
+        original_price = original_price.get_text().strip()
+        discount_price = soup.find(
+            "div", {"class": "discount_final_price"}).get_text().strip()
 
-        games_list.append(extracted_game)
+    else:  #  not on discount
+        price = soup.find(
+            "div", {"class": "game_purchase_price price"}).get_text().strip()
 
     return games_list
 
@@ -81,17 +83,12 @@ def export_steam() -> None:
     results = []
 
     os.makedirs(FOLDER_PATH, exist_ok=True)
+    get_data_from_term()
 
     game = get_data(URL)
-    results.append(parse(game))
+    game_data = parse_steam(game)
 
-    # results = [game for list_of_50_games in results for game in list_of_50_games] # i miss you, list comp
-    flattened_results = []
-    for list_of_50_games in results:
-        for game in list_of_50_games:
-            flattened_results.append(game)
-
-    output(flattened_results)
+    output(game_data)
 
 
 if __name__ == '__main__':

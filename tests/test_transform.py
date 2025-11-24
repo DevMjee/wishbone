@@ -20,9 +20,9 @@ def test_transform_source_general_source():
     # Mock file contents (not used because json.load is mocked)
     m = mock_open(read_data="dummy")
 
-    with patch("transform.open", m):
-        with patch("transform.json.load", return_value=fake_json):
-            from transform import transform_source
+    with patch("source.pipeline.transform.open", m):
+        with patch("source.pipeline.transform.json.load", return_value=fake_json):
+            from source.pipeline.transform import transform_source
 
             df = transform_source("gog_products.json")
 

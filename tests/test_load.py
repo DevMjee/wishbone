@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock, patch, mock_open
 from datetime import date
-from load import get_or_create_game, get_or_create_platform, insert_listing, load_data, get_connection
+from source.pipeline.load import get_or_create_game, get_or_create_platform, insert_listing, load_data, get_connection
 
 
 def test_get_create_game_existing():
@@ -55,9 +55,9 @@ def test_insert_listing_calls_execute():
     assert params == (1, 2, 1000, 50, date(2025, 1, 1))
 
 
-@patch("load.open", new_callable=mock_open, read_data="[]")
-@patch("load.json.load")
-@patch("load.get_connection")
+@patch("source.pipeline.load.open", new_callable=mock_open, read_data="[]")
+@patch("source.pipeline.load.json.load")
+@patch("source.pipeline.load.get_connection")
 def test_load_data_success(mock_conn_function, mock_json_load, mock_open_file):
     mock_json_load.return_value = [{
         "game_name": "Bob",
@@ -82,9 +82,9 @@ def test_load_data_success(mock_conn_function, mock_json_load, mock_open_file):
     assert mock_conn.close.called
 
 
-@patch("load.open", new_callable=mock_open, read_data="[]")
-@patch("load.json.load")
-@patch("load.get_connection")
+@patch("source.pipeline.load.open", new_callable=mock_open, read_data="[]")
+@patch("source.pipeline.load.json.load")
+@patch("source.pipeline.load.get_connection")
 def test_load_data_error(mock_conn_function, mock_json_load, mock_open_file):
     mock_json_load.return_value = [{
         "game_name": "Bob",

@@ -2,7 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
-from extract_gog import fetch_json, extract_product, extract_batch, get_all_product_ids
+from source.pipeline.extract_gog import fetch_json, extract_product, extract_batch, get_all_product_ids
 
 
 @pytest.fixture
@@ -123,7 +123,7 @@ async def test_extract_product_no_prices():
 @pytest.mark.asyncio
 async def test_extract_batch():
     with patch(
-        "extract_gog.extract_product",
+        "source.pipeline.extract_gog.extract_product",
         return_value={"id": 1}
     ) as mock_function:
         results = await extract_batch([1, 2, 3], usd_to_gbp=0.7)
@@ -144,7 +144,7 @@ def test_get_all_product_ids():
     mock_response = MagicMock()
     mock_response.text = html
 
-    with patch("extract_gog.requests.get", return_value=mock_response):
+    with patch("source.pipeline.extract_gog.requests.get", return_value=mock_response):
         ids = get_all_product_ids()
 
     assert ids == [123, 456]

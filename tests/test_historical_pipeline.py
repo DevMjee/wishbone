@@ -4,7 +4,7 @@ from datetime import date
 from unittest.mock import patch, MagicMock
 import pytest
 import pandas as pd
-from historical_pipeline import extract_table, transform_listing, load_dim_table, load_listing_partitioned, delete_old_listing_data, main, lambda_handler
+from source.s3_pipeline.historical_pipeline import extract_table, transform_listing, load_dim_table, load_listing_partitioned, delete_old_listing_data, main, lambda_handler
 
 
 def test_extract_table_valid():
@@ -12,7 +12,7 @@ def test_extract_table_valid():
     fake_conn = MagicMock()
     fake_engine.begin.return_value.__enter__.return_value = fake_conn
 
-    with patch("historical_pipeline.get_engine", return_value=fake_engine), patch("pandas.read_sql", return_value=pd.DataFrame({"id": [1, 2]})) as mock_read_sql:
+    with patch("source.s3_pipeline.historical_pipeline.get_engine", return_value=fake_engine), patch("pandas.read_sql", return_value=pd.DataFrame({"id": [1, 2]})) as mock_read_sql:
         df = extract_table("game")
 
         mock_read_sql.assert_called_once()
@@ -75,7 +75,7 @@ def test_delete_old_listing_data():
     fake_engine = MagicMock()
     fake_engine.begin.return_value.__enter__.return_value = fake_conn
 
-    with patch("historical_pipeline.get_engine", return_value=fake_engine):
+    with patch("source.s3_pipeline.historical_pipeline.get_engine", return_value=fake_engine):
         delete_old_listing_data()
 
         fake_conn.execute.assert_called_once()
@@ -83,11 +83,11 @@ def test_delete_old_listing_data():
 
 
 def test_main():
-    with patch("historical_pipeline.extract_table") as mock_extract, \
-            patch("historical_pipeline.transform_listing") as mock_transform, \
-            patch("historical_pipeline.load_dim_table") as mock_dim, \
-            patch("historical_pipeline.load_listing_partitioned") as mock_listing, \
-            patch("historical_pipeline.delete_old_listing_data") as mock_delete:
+    with patch("source.s3_pipeline.historical_pipeline.extract_table") as mock_extract, \
+            patch("source.s3_pipeline.historical_pipeline.transform_listing") as mock_transform, \
+            patch("source.s3_pipeline.historical_pipeline.load_dim_table") as mock_dim, \
+            patch("source.s3_pipeline.historical_pipeline.load_listing_partitioned") as mock_listing, \
+            patch("source.s3_pipeline.historical_pipeline.delete_old_listing_data") as mock_delete:
 
         main()
 
@@ -99,7 +99,7 @@ def test_main():
 
 
 def test_lambda_handler():
-    with patch("historical_pipeline.main") as mock_main:
+    with patch("source.s3_pipeline.historical_pipeline.main") as mock_main:
         response = lambda_handler({}, {})
 
         mock_main.assert_called_once()

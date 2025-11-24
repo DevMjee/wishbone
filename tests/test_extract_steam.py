@@ -1,7 +1,7 @@
 """Tests for the extract_steam script"""
 
 import pytest
-from extract_steam import get_total_page_count, get_data, convert_price, parse
+from source.pipeline.extract_steam import get_total_page_count, get_data, convert_price, parse
 
 
 def test_convert_price_valid_1():

@@ -15,25 +15,19 @@ URL = 'https://store.steampowered.com/app/730/CounterStrike_2/'
 FOLDER_PATH = 'data/'  # needs to be /tmp/data for lambda
 FILEPATH = f'{FOLDER_PATH}steam_addon.json'
 SEARCH_TERM = 'stardew valley'  # user given
+SEARCH_TERM = 'spiderman'  # user given
 STEAM_SEARCH = 'https://store.steampowered.com/search?term={search_term}'
 
 
-def get_data_from_term():
+def get_data() -> str:
     """Get data from search term"""
     # build url
     response = requests.get(STEAM_SEARCH.format(search_term=SEARCH_TERM))
     raw_data = response.text
-    input(raw_data)
-
-
-def get_data(url: str) -> str:
-    """Function to obtain raw data from url html"""
-    response = requests.get(url)
-    raw_data = response.text
     if raw_data:
         return raw_data
     raise ValueError(
-        f'{url} is invalid, leads to no match for the results_html label in the HTML page')
+        f'{SEARCH_TERM} is invalid and leads to no match')
 
 
 def convert_price(value: str) -> int:
@@ -50,10 +44,12 @@ def parse_steam(data: str) -> list[dict]:
     """Function to scrape top selling games and output list of dicts with prices and titles"""
     games_list = []
     soup = BeautifulSoup(data, 'html.parser')
-    # game not on discount
 
     #  removes 'On Steam' from title
     title = soup.title.string.strip()[:-9]
+    input(title)
+    # class = "discount_original_price" >£10.99 # if none, then no discount
+    # class = "discount_final_price" >£10.99
 
     original_price = soup.find(
         "div", {"class": "discount_original_price"})
@@ -83,9 +79,8 @@ def export_steam() -> None:
     results = []
 
     os.makedirs(FOLDER_PATH, exist_ok=True)
-    get_data_from_term()
 
-    game = get_data(URL)
+    game = get_data()
     game_data = parse_steam(game)
 
     output(game_data)

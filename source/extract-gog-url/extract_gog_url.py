@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import requests
 
 URL = "https://www.gog.com/en/game/captain_blood"
+KEYWORDS = ["finalAmount", "baseAmount"]
 
 
 def fetch_page_html(url: str) -> str:
@@ -14,15 +15,13 @@ def fetch_page_html(url: str) -> str:
     return response.text
 
 
-def extract_script_block(html: str) -> str:
-    """Extract the <script> tag in <body> that contains price info"""
-    soup = BeautifulSoup(html, "html.parser")
-    script_tag = soup.body.script
+def find_price_script(soup) -> str:
+    """Checks if a price script exists in the HTML page"""
+    for script in soup.find_all("script"):
+        if script.string and any(k in script.string for k in KEYWORDS):
+            return script.string
 
-    if not script_tag or not script_tag.string:
-        raise ValueError("Unable to find script data in page")
-
-    return script_tag.string
+    raise ValueError("No price script found in HTML")
 
 
 def extract_amount(script_text: str, keyword: str) -> str:
@@ -35,16 +34,19 @@ def extract_amount(script_text: str, keyword: str) -> str:
     return float(match.group(1))
 
 
-def main():
+def get_prices():
     html = fetch_page_html(URL)
-    script_text = extract_script_block(html)
+    soup = BeautifulSoup(html, "html.parser")
+    script_text = find_price_script(soup)
 
     final_amount = extract_amount(script_text, "finalAmount")
     base_amount = extract_amount(script_text, "baseAmount")
 
-    print(f"Final Amount: {final_amount}")
-    print(f"Base Amount: {base_amount}")
+    return {
+        "base_price": base_amount,
+        "final_price": final_amount
+    }
 
 
 if __name__ == "__main__":
-    main()
+    print(get_prices())

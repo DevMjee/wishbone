@@ -1,5 +1,6 @@
 """Script which gets data from steam web api"""
 
+import argparse
 import re
 import json
 import os
@@ -8,23 +9,27 @@ import requests
 
 
 FOLDER_PATH = 'data/'  # needs to be /tmp/data for lambda
-FILEPATH = f'{FOLDER_PATH}steam_addon.json'
-SEARCH_TERM = 'stardew valley'  # user given
+FILEPATH = f'{FOLDER_PATH}products.json'
 STEAM_SEARCH = 'https://store.steampowered.com/search?term={search_term}'
-SEARCH_SPLIT = '<div class="search_name ellipsis">'
+STEAM_SPLIT = '<div class="search_name ellipsis">'
+GOG_SEARCH = 'https://www.gog.com/en/games?query={search_term}&order=desc:score'
+GOG_SPLIT = '<-product-tile _ngcontent-gogcom-store-c715558788"'
+GOG_KEYWORDS = ["finalAmount", "baseAmount"]
+
+# <--- Steam functions --->
 
 
-def get_data() -> str:
-    """Get first result data from search term"""
+def get_steam_html(search_input: str) -> str:
+    """Get first result data from steam search term"""
     # build url
-    response = requests.get(STEAM_SEARCH.format(search_term=SEARCH_TERM))
+    response = requests.get(STEAM_SEARCH.format(search_term=search_input))
     raw_data = response.text
     if raw_data:
         # get the first result ignoring the headers
-        raw_data = raw_data.split(SEARCH_SPLIT)[1]
+        raw_data = raw_data.split(STEAM_SPLIT)[1]
         return raw_data
     raise ValueError(
-        f'{SEARCH_TERM} is invalid and leads to no match')
+        f'{search_input} is invalid and leads to no match')
 
 
 def convert_price(value: str) -> int:
@@ -38,7 +43,7 @@ def convert_price(value: str) -> int:
     raise ValueError(f'Unexpected input: {value}')
 
 
-def parse_steam(data: str) -> list[dict]:
+def parse_steam(data: str, search_input: str) -> dict:
     """Function to scrape top selling games and output list of dicts with prices and titles"""
     soup = BeautifulSoup(data, 'html.parser')
 
@@ -49,7 +54,7 @@ def parse_steam(data: str) -> list[dict]:
     if title:
         title = title.get_text().strip()
     else:
-        raise ValueError(f'No search results found for {SEARCH_TERM}')
+        raise ValueError(f'No search results found for {search_input}')
 
     discount_price = soup.find(
         "div", {"class": "discount_final_price"})
@@ -69,9 +74,49 @@ def parse_steam(data: str) -> list[dict]:
     listing = {
         'name': title,
         'base_price_gbp_pence': convert_price(str(original_price)),
-        'final_price_gbp_pence': convert_price(str(discount_price))
+        'final_price_gbp_pence': convert_price(str(discount_price)),
+        'platform': 'steam'
     }
-    input(listing)
+
+    return listing
+
+
+# <--- GOG functions --->
+
+
+def get_gog_html(search_input: str) -> str:
+    """Get first result data from search term"""
+    # build url
+    print(GOG_SEARCH.format(search_term=search_input))
+    input()
+    response = requests.get(GOG_SEARCH.format(search_term=search_input))
+    raw_data = response.text
+    if raw_data:
+        raw_data = raw_data.split(GOG_SPLIT)[0]
+        return raw_data
+    raise ValueError(
+        f'{search_input} is invalid and leads to no match')
+
+
+def get_gog_prices(search_input: str) -> dict:
+    html = get_gog_html(search_input)
+    soup = BeautifulSoup(html, "html.parser")
+    title = soup.find_all(
+        'div', {"class": "product-tile__title ng-star-inserted"})
+    input(title)
+
+    final_amount = extract_amount(script_text, "finalAmount")
+    base_amount = extract_amount(script_text, "baseAmount")
+
+    listing = {
+        'name': title,
+        'base_price_gbp_pence': base_amount,
+        'final_price_gbp_pence': final_amount,
+        'platform': 'gog'
+    }
+    return listing
+
+# <--- Main function --->
 
 
 def output(results: list[dict]) -> None:
@@ -83,17 +128,26 @@ def output(results: list[dict]) -> None:
         json.dump(results, f, indent=4)
 
 
-def export_steam() -> None:
-    results = []
+def export_games() -> None:
 
     os.makedirs(FOLDER_PATH, exist_ok=True)
 
-    game = get_data()
-    print(game)
-    game_data = parse_steam(game)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--search_input", default='stardew valley')
+    args = parser.parse_args()
+    user_input = args.search_input
 
-    output(game_data)
+    games_list = []
+
+    # steam search
+    game = get_steam_html(user_input)
+    games_list.append(parse_steam(game, user_input))
+
+    # gog search
+    games_list.append(get_gog_prices(user_input))
+
+    output(games_list)
 
 
 if __name__ == '__main__':
-    export_steam()
+    export_games()

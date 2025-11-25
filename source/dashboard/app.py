@@ -231,7 +231,7 @@ def create_current_price_metrics() -> None:
             sort_by = create_sorting_choice_filter()
             sort_dir = create_direction_sorting_filter()
 
-    data = format_data(game_filter, db_conn)
+    data = format_data(game_filter, db_conn, sort_by, sort_dir)
     last_page = len(data)//15
 
     prev, _, next = st.columns([3, 10, 3])

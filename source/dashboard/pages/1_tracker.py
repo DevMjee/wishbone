@@ -18,7 +18,8 @@ S3_BUCKET_NAME = environ["BUCKET_NAME"]
 
 
 @st.cache_data()
-def get_data():
+def get_data() -> pd.DataFrame:
+    "queries the Glue DB and returns game data"
     data = wr.athena.read_sql_query("""
     select g.game_id,g.game_name, l.price, l.recording_date, p.platform_name
                                     from listing l
@@ -36,8 +37,8 @@ def get_data():
     return data
 
 
-def unsub_button(email):
-
+def unsub_button(email: str) -> dict:
+    "Added button to unsubscribe email from email service"
     unsub = st.button(
         label='Unsubscribe from all',
         help='click to remove your email from our system'
@@ -49,7 +50,8 @@ def unsub_button(email):
     return response
 
 
-def sub_selects():
+def sub_selects() -> list:
+    "multiselect option to select games to subscribe to"
     games = get_data()['Game']
     sub = st.multiselect(
         label="Select Games to subscribe to",
@@ -58,19 +60,20 @@ def sub_selects():
     return sub
 
 
-def sub_button(email, games):
+def sub_button(email: str, games: list) -> None:
+    "button to subscribe to all games selected in sub_selects"
     game_ids = get_data()[['game_id', 'Game']]
     filtered_ids = game_ids[game_ids['Game'].isin(games)]
     sub = st.button(
         label="Subscribe to the selected games"
     )
-    response = {'status': 'success', 'msg': ''}
     if sub:
         for game_id in filtered_ids["game_id"]:
             run_subscribe(email, game_id)
 
 
-def create_price_vs_time_chart(game_filter):
+def create_price_vs_time_chart(game_filter: list) -> alt.Chart:
+    "creates a price vs time chart for every selected game"
     data = get_data()
     data['recording_date'] = data['recording_date'].dt.date
     data['price'] = data['price'].astype(float)/100
@@ -87,7 +90,8 @@ def create_price_vs_time_chart(game_filter):
     return chart
 
 
-def create_game_name_filter():
+def create_game_name_filter() -> list:
+    "create filter to filter the data for the graph by game name"
     games = get_data()['Game'].unique()
 
     games_filter = st.multiselect(
@@ -95,20 +99,25 @@ def create_game_name_filter():
     return games_filter
 
 
-def create_dashboard():
-
-    st.set_page_config(page_title="Game Tracker", page_icon="👻")
+def create_dashboard() -> None:
+    "calls all of the above functions to create the tracking page of the dashboard"
+    st.set_page_config(page_title="Game Tracker", page_icon="🎮")
 
     with st.sidebar:
         with st.expander(label="Choose Games to Track"):
             game_filter = create_game_name_filter()
-    chart = create_price_vs_time_chart(game_filter)
+
+            if game_filter is not None and game_filter != []:
+                st.session_state['game_filter'] = game_filter
+
+    game_filter = st.session_state["game_filter"]
+    chart = create_price_vs_time_chart(st.session_state.game_filter)
     st.altair_chart(chart)
 
     email = st.text_input('Email', "example@domain.com", )
     games = sub_selects()
     sub_button(email, games)
-    response = unsub_button()
+    response = unsub_button(email)
     if not response.get('status') == 'idle':
         st.text(response.get('msg'))
 

@@ -6,6 +6,7 @@ from backend import (validate_login, validate_new_email,
 
 
 def run_login(conn):
+    """Displays the login prompt and logs a user in"""
     identity = st.text_input('Username or email')
     password = bytes(st.text_input('Password'), encoding='utf-8')
 
@@ -25,6 +26,7 @@ def run_login(conn):
 
 
 def run_create_account(conn):
+    """Displays the create account prompt and creates a user with provided info"""
     email = st.text_input('Enter your email')
     e_validation = validate_new_email(email, conn)
     st.text(e_validation.get('msg'))
@@ -47,32 +49,33 @@ def run_create_account(conn):
                 st.text(response.get('msg'))
 
 
-tracker, _, home = st.columns([3, 10, 3])
+def login():
+    """Runs the login page"""
+    tracker, _, home = st.columns([3, 10, 3])
 
-if tracker.button("Game Tracker"):
-    st.switch_page("pages/1_tracker.py")
+    if tracker.button("Game Tracker"):
+        st.switch_page("pages/1_tracker.py")
 
-if home.button("Home"):
-    st.switch_page("./app.py")
+    if home.button("Home"):
+        st.switch_page("./app.py")
 
-db_conn = get_connection()
+    db_conn = get_connection()
 
-# Initialize session state variable
-if "create_account" not in st.session_state:
-    st.session_state.create_account = False
+    if "create_account" not in st.session_state:
+        st.session_state.create_account = False
 
-# Button to switch modes
-if st.session_state.create_account:
-    if st.button("Back to login"):
-        st.session_state.creatE_account = False
+    if st.session_state.create_account:
+        if st.button("Back to login"):
+            st.session_state.creatE_account = False
 
-if not st.session_state.create_account:
-    if st.button("Don't have an account? Click here!"):
-        st.session_state.create_account = True
+    if not st.session_state.create_account:
+        if st.button("Don't have an account? Click here!"):
+            st.session_state.create_account = True
+
+    if st.session_state.create_account:
+        run_create_account(db_conn)
+    else:
+        run_login(db_conn)
 
 
-# Show appropriate form
-if st.session_state.create_account:
-    run_create_account(db_conn)
-else:
-    run_login(db_conn)
+login()

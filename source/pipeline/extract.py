@@ -1,4 +1,4 @@
-"""Script which gets data from steam web api"""
+"""Script which gets data from web api search console, one game at a time"""
 
 import argparse
 import re
@@ -121,12 +121,12 @@ def get_gog_prices(search_input: str) -> dict:
 # <--- Main function --->
 
 
-def output(results: list[dict]) -> None:
+def output(results: dict, destination: str) -> None:
     """Function to create output json file"""
     if not os.path.isdir(FOLDER_PATH):
         os.mkdir(FOLDER_PATH)
 
-    with open(STEAM_PATH, 'w+', encoding='utf-8') as f:
+    with open(destination, 'w+', encoding='utf-8') as f:
         json.dump(results, f, indent=4)
 
 
@@ -139,11 +139,9 @@ def export_games() -> None:
     args = parser.parse_args()
     user_input = args.search_input
 
-    games_list = []
-
     # steam search
     game = get_steam_html(user_input)
-    games_list.append(parse_steam(game, user_input))
+    output(parse_steam(game, user_input), STEAM_PATH)
 
     # gog search
     try:
@@ -152,9 +150,8 @@ def export_games() -> None:
     except:
         print("RatesNotAvailableError - Forex API is currently unavailable")
         usd_to_gbp_rate = DEFAULT_RATE
-    games_list.append(get_gog_prices(user_input))
 
-    output(games_list)
+    output(get_gog_prices(user_input), GOG_PATH)
 
 
 if __name__ == '__main__':

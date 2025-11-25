@@ -98,6 +98,9 @@ def get_gog_html(search_input: str) -> str:
         f'{search_input} is invalid and leads to no match')
 
 
+# https://catalog.gog.com/v1/catalog?limit=48&query=like%3Astardew+valley
+
+
 def get_gog_prices(search_input: str) -> dict:
     html = get_gog_html(search_input)
     soup = BeautifulSoup(html, "html.parser")

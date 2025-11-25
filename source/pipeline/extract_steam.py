@@ -94,6 +94,10 @@ def export_steam() -> None:
 
     for step in range(0, MAX_SEARCH, 50):
         top_selling = str(get_data(URL.format(start=step)))
+
+        print(top_selling)
+        input()
+
         results.append(parse(top_selling))
         print('Results Scraped: ', step)
 

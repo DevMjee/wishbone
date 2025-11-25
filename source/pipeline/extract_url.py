@@ -1,30 +1,27 @@
 """Script which gets data from steam web api"""
 
+import re
 import json
 import os
 from bs4 import BeautifulSoup
 import requests
 
-URL = 'https://store.steampowered.com/app/1817070/Marvels_SpiderMan_Remastered/'
-URL = 'https://store.steampowered.com/app/632360/Risk_of_Rain_2/'
-URL = 'https://store.steampowered.com/app/80/CounterStrike_Condition_Zero/'
-URL = 'https://store.steampowered.com/app/730/CounterStrike_2/'
-
-#  user gives url, we find other url from this,
 
 FOLDER_PATH = 'data/'  # needs to be /tmp/data for lambda
 FILEPATH = f'{FOLDER_PATH}steam_addon.json'
 SEARCH_TERM = 'stardew valley'  # user given
-SEARCH_TERM = 'spiderman'  # user given
 STEAM_SEARCH = 'https://store.steampowered.com/search?term={search_term}'
+SEARCH_SPLIT = '<div class="search_name ellipsis">'
 
 
 def get_data() -> str:
-    """Get data from search term"""
+    """Get first result data from search term"""
     # build url
     response = requests.get(STEAM_SEARCH.format(search_term=SEARCH_TERM))
     raw_data = response.text
     if raw_data:
+        # get the first result ignoring the headers
+        raw_data = raw_data.split(SEARCH_SPLIT)[1]
         return raw_data
     raise ValueError(
         f'{SEARCH_TERM} is invalid and leads to no match')
@@ -32,6 +29,7 @@ def get_data() -> str:
 
 def convert_price(value: str) -> int:
     """Convert 'Free' to 0 and string nums to ints"""
+    value = value.split('£')[-1].replace('.', '')
     if value.isnumeric():
         return int(value)
     # if not numeric, assume free
@@ -42,28 +40,38 @@ def convert_price(value: str) -> int:
 
 def parse_steam(data: str) -> list[dict]:
     """Function to scrape top selling games and output list of dicts with prices and titles"""
-    games_list = []
     soup = BeautifulSoup(data, 'html.parser')
 
-    #  removes 'On Steam' from title
-    title = soup.title.string.strip()[:-9]
-    input(title)
     # class = "discount_original_price" >£10.99 # if none, then no discount
     # class = "discount_final_price" >£10.99
 
+    title = soup.find("span", {"class": "title"})
+    if title:
+        title = title.get_text().strip()
+    else:
+        raise ValueError(f'No search results found for {SEARCH_TERM}')
+
+    discount_price = soup.find(
+        "div", {"class": "discount_final_price"})
+    if discount_price:
+        discount_price = discount_price.get_text().strip()
+    else:
+        raise ValueError(
+            'Uh oh. Steam must have changed how they label discount prices!')
+
     original_price = soup.find(
         "div", {"class": "discount_original_price"})
-
     if original_price:  # if on discount
         original_price = original_price.get_text().strip()
-        discount_price = soup.find(
-            "div", {"class": "discount_final_price"}).get_text().strip()
-
     else:  #  not on discount
-        price = soup.find(
-            "div", {"class": "game_purchase_price price"}).get_text().strip()
+        original_price = discount_price
 
-    return games_list
+    listing = {
+        'name': title,
+        'base_price_gbp_pence': convert_price(str(original_price)),
+        'final_price_gbp_pence': convert_price(str(discount_price))
+    }
+    input(listing)
 
 
 def output(results: list[dict]) -> None:
@@ -81,6 +89,7 @@ def export_steam() -> None:
     os.makedirs(FOLDER_PATH, exist_ok=True)
 
     game = get_data()
+    print(game)
     game_data = parse_steam(game)
 
     output(game_data)

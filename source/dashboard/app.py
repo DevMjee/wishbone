@@ -244,11 +244,11 @@ def create_current_price_metrics() -> None:
         yOffset="dataset:N"
     )
 
-       with st.expander(label='Login'):
-            run_login(db_conn)
+    with st.expander(label='Login'):
+        run_login(db_conn)
 
-        with st.expander(label='Create Account'):
-            run_create_account(db_conn)
+    with st.expander(label='Create Account'):
+        run_create_account(db_conn)
 
     data = format_data(game_filter, db_conn)
     last_page = len(data)//15

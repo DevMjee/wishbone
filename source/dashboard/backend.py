@@ -27,6 +27,7 @@ def get_connection() -> connection:
 
 
 def get_user_data_by_username(username: str, conn: connection) -> pd.DataFrame:
+    """Returns a dataframe of a user's login info by username"""
     check_query = f"""
                 SELECT *
                 FROM wishbone."login"
@@ -39,6 +40,7 @@ def get_user_data_by_username(username: str, conn: connection) -> pd.DataFrame:
 
 
 def get_user_data_by_email(email: str, conn: connection) -> pd.DataFrame:
+    """Returns a dataframe of a user's login info by email"""
     check_query = f"""
                 SELECT *
                 FROM wishbone."login"
@@ -51,6 +53,7 @@ def get_user_data_by_email(email: str, conn: connection) -> pd.DataFrame:
 
 
 def check_login(identity: str, password: bytes, conn: connection) -> dict:
+    """Checks provided information agains the database"""
     try:
         validate_email(identity)
         user_data = get_user_data_by_email(identity, conn)
@@ -77,12 +80,14 @@ def check_login(identity: str, password: bytes, conn: connection) -> dict:
 
 
 def hash_password(password: str) -> bytes:
+    """Returns a hashed version of the input password"""
     password_bytes = bytes(password, encoding='utf-8')
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password_bytes, salt)
 
 
 def delete_user(username: str, conn: connection) -> None:
+    """Deletes a user from the login database (not implemented yet)"""
     delete_query = f"""
                     DELETE FROM wishbone."login"
                     JOIN wishbone."users"
@@ -100,6 +105,7 @@ def delete_user(username: str, conn: connection) -> None:
 
 
 def validate_login(identity: str, password: str) -> dict:
+    """Checks that username/email and password are present"""
     if not identity:
         return {'success': False, 'msg': 'Username or email cannot be blank.'}
 
@@ -110,6 +116,7 @@ def validate_login(identity: str, password: str) -> dict:
 
 
 def validate_new_password(password_1: str, password_2: str) -> dict:
+    """Enforces constraints on new passwords"""
     # TODO: Add more strict password rules
     if not password_1:
         return {'success': False, 'msg': 'Password cannot be blank.'}
@@ -124,6 +131,7 @@ def validate_new_password(password_1: str, password_2: str) -> dict:
 
 
 def validate_new_username(username: str, conn: connection) -> dict:
+    """Enforces constraints on new usernames"""
     # TODO: Add more strict username rules
     if not username:
         return {'success': False, 'msg': 'Username cannot be blank.'}
@@ -145,6 +153,7 @@ def validate_new_username(username: str, conn: connection) -> dict:
 
 
 def validate_new_email(email: str, conn: connection) -> dict:
+    """Enforces constraints on new emails"""
     try:
         validate_email(email)
 
@@ -159,6 +168,7 @@ def validate_new_email(email: str, conn: connection) -> dict:
 
 
 def create_user(username: str, email: str, password: str, conn: connection) -> dict:
+    """Adds a user to the login database"""
     hashed_password = hash_password(password)
     insert_users_query = """
                     INSERT INTO wishbone."users"
@@ -197,6 +207,7 @@ def create_user(username: str, email: str, password: str, conn: connection) -> d
 
 
 async def trigger_lambda(payload: dict) -> dict:
+    """Triggers the lambda for mailing list subscription"""
     async with aioboto3.client('lambda') as client:
         response = await client.invoke(
             FunctionName='wishbone-tracking-lambda',
@@ -209,6 +220,7 @@ async def trigger_lambda(payload: dict) -> dict:
 
 
 def run_unsubscribe(email: str):
+    """Triggers lambda with payload for unsubscribing"""
     payload = {
         'subscribe': 'False',
         'email': email
@@ -217,6 +229,7 @@ def run_unsubscribe(email: str):
 
 
 def run_subscribe(email: str, game_id):
+    """Triggers lambda with payload for subscribing"""
     payload = {
         'subscribe': 'True',
         'email': email,

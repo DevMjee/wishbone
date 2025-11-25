@@ -17,7 +17,6 @@ STEAM_SPLIT = '<div class="search_name ellipsis">'
 
 GOG_PATH = f'{FOLDER_PATH}gog_products.json'
 GOG_SEARCH = 'https://catalog.gog.com/v1/catalog?limit=48&query=like%3A{search_term}'
-GOG_SPLIT = '<-product-tile _ngcontent-gogcom-store-c715558788"'
 DEFAULT_RATE = 0.77
 
 # <--- Steam functions --->
@@ -34,17 +33,6 @@ def get_steam_html(search_input: str) -> str:
         return raw_data
     raise ValueError(
         f'{search_input} is invalid and leads to no match')
-
-
-def convert_price(value: str) -> int:
-    """Convert 'Free' to 0 and string nums to ints"""
-    value = value.split('£')[-1].replace('.', '')
-    if value.isnumeric():
-        return int(value)
-    # if not numeric, assume free
-    if value.lower() == 'free':
-        return 0
-    raise ValueError(f'Unexpected input: {value}')
 
 
 def parse_steam(data: str, search_input: str) -> dict:
@@ -87,38 +75,54 @@ def parse_steam(data: str, search_input: str) -> dict:
 # <--- GOG functions --->
 
 
-def get_gog_html(search_input: str) -> str:
+def get_gog_html(search_input: str) -> dict:
     """Get first result data from search term"""
     # build url
-    print(GOG_SEARCH.format(search_term=search_input))
-    input()
     response = requests.get(GOG_SEARCH.format(search_term=search_input))
-    raw_data = response.text
+    raw_data = dict(response.json()).get('products')
     if raw_data:
-        raw_data = raw_data.split(GOG_SPLIT)[0]
-        return raw_data
+        return raw_data[0]  # only the first match
     raise ValueError(
         f'{search_input} is invalid and leads to no match')
 
 
-def get_gog_prices(search_input: str) -> dict:
-    html = get_gog_html(search_input)
-    soup = BeautifulSoup(html, "html.parser")
-    title = soup.find_all(
-        'div', {"class": "product-tile__title ng-star-inserted"})
-    input(title)
+def get_gog_prices(search_input: str, convert_rate: float = DEFAULT_RATE) -> dict:
+    data = get_gog_html(search_input)
+    title = data.get('title')
 
-    final_amount = 'extract_amount(script_text, "finalAmount")'
-    base_amount = 'extract_amount(script_text, "baseAmount")'
+    prices = data.get('price')
+    if not prices:
+        raise ValueError('There are no prices here, oops')
+
+    final_amount = prices.get('final')
+    base_amount = prices.get('base')
 
     listing = {
         'name': title,
-        'base_price_gbp_pence': base_amount,
-        'final_price_gbp_pence': final_amount
+        'base_price_gbp_pence': convert_price(base_amount, convert_rate),
+        'final_price_gbp_pence': convert_price(final_amount, convert_rate)
     }
     return listing
 
 # <--- Main function --->
+
+
+def convert_price(value: str, convert_rate: float = DEFAULT_RATE) -> int:
+    """Convert 'Free' to 0 and string nums to ints"""
+    if '$' in value:
+        value = value.split('$')[-1].replace('.', '')
+        if value.isnumeric():
+            return int(int(value) * convert_rate)
+
+    else:
+        value = value.split('£')[-1].replace('.', '')
+
+    if value.isnumeric():
+        return int(value)
+    # if not numeric, assume free
+    if value.lower() == 'free':
+        return 0
+    raise ValueError(f'Unexpected input: {value}')
 
 
 def output(results: dict, destination: str) -> None:
@@ -146,12 +150,12 @@ def export_games() -> None:
     # gog search
     try:
         c = CurrencyRates()
-        usd_to_gbp_rate = c.get_rate("USD", "GBP")
+        usd_to_gbp_rate = float(c.get_rate("USD", "GBP"))
     except:
         print("RatesNotAvailableError - Forex API is currently unavailable")
         usd_to_gbp_rate = DEFAULT_RATE
 
-    output(get_gog_prices(user_input), GOG_PATH)
+    output(get_gog_prices(user_input, usd_to_gbp_rate), GOG_PATH)
 
 
 if __name__ == '__main__':

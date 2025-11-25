@@ -6,29 +6,66 @@ from psycopg2.extensions import connection
 from psycopg2.errors import UniqueViolation
 import bcrypt
 import pandas as pd
+from os import environ
+from dotenv import load_dotenv
+from email_validator import validate_email, EmailNotValidError
+
+load_dotenv()
 
 
-def get_user_data(username: str, conn: connection) -> pd.DataFrame:
+def get_connection() -> connection:
+    "function to return connection to the RDS database"
+    conn = connect(
+        host=environ["RDS_HOST"],
+        user=environ["RDS_USERNAME"],
+        password=environ["RDS_PASSWORD"],
+        dbname=environ["DB_NAME"],
+        port=environ["PORT"],
+    )
+
+    return conn
+
+
+def get_user_data_by_username(username: str, conn: connection) -> pd.DataFrame:
     check_query = f"""
                 SELECT *
                 FROM wishbone."login"
+                JOIN wishbone."users"
+                    USING(user_id)
                 WHERE username = '{username}';
                 """
 
     return pd.read_sql_query(check_query, conn)
 
 
-def check_login(username: str, password: bytes, conn: connection) -> dict:
-    user_data = get_user_data(username, conn)
+def get_user_data_by_email(email: str, conn: connection) -> pd.DataFrame:
+    check_query = f"""
+                SELECT *
+                FROM wishbone."login"
+                JOIN wishbone."users"
+                    USING(user_id)
+                WHERE email = '{email}';
+                """
+
+    return pd.read_sql_query(check_query, conn)
+
+
+def check_login(identity: str, password: bytes, conn: connection) -> dict:
+    try:
+        validate_email(identity)
+        user_data = get_user_data_by_email(identity, conn)
+
+    except EmailNotValidError:
+        user_data = get_user_data_by_username(identity, conn)
 
     if user_data.empty:
-        return {'success': False, 'msg': f"User '{username}' is not recognised."}
+        return {'success': False, 'msg': f"User '{identity}' is not recognised."}
 
     user_dict = user_data.to_dict('series')
 
     if not len(user_dict.get('login_id')) == 1:
         return {'success': False, 'msg': f"What manner of thing has occured??? \
-                (Multiple entries returned for user '{username}'.)"}
+                (Multiple entries returned for user '{identity}'.)"}
 
     stored_hash = bytes(user_dict.get(
         'password_hash')[0], encoding='utf-8')
@@ -48,6 +85,8 @@ def hash_password(password: str) -> bytes:
 def delete_user(username: str, conn: connection) -> None:
     delete_query = f"""
                     DELETE FROM wishbone."login"
+                    JOIN wishbone."users"
+                        USING(user_id)
                     WHERE username = '{username}';
                     """
 
@@ -60,9 +99,9 @@ def delete_user(username: str, conn: connection) -> None:
     cur.close()
 
 
-def validate_login(username: str, password: str) -> dict:
-    if not username:
-        return {'success': False, 'msg': 'Username cannot be blank.'}
+def validate_login(identity: str, password: str) -> dict:
+    if not identity:
+        return {'success': False, 'msg': 'Username or email cannot be blank.'}
 
     if not password:
         return {'success': False, 'msg': 'Password cannot be blank.'}
@@ -98,26 +137,54 @@ def validate_new_username(username: str, conn: connection) -> dict:
     if not len(username) >= 3:
         return {'success': False, 'msg': 'Username must be at least 3 characters long.'}
 
-    user_data = get_user_data(username, conn)
+    user_data = get_user_data_by_username(username, conn)
     if not user_data.empty:
         return {'success': False, 'msg': f"User '{username}' already exists."}
 
     return {'success': True, 'msg': 'This username is available.'}
 
 
-def create_user(username: str, password: str, conn: connection) -> dict:
-    hashed_password = hash_password(password)
+def validate_new_email(email: str, conn: connection) -> dict:
+    try:
+        validate_email(email)
 
-    insert_query = """
+    except EmailNotValidError:
+        return {'success': False, 'msg': 'Please enter a valid email address.'}
+
+    user_data = get_user_data_by_email(email, conn)
+    if not user_data.empty:
+        return {'success': False, 'msg': 'There is already an account associated with this email address.'}
+
+    return {'success': True, 'msg': 'This email is valid.'}
+
+
+def create_user(username: str, email: str, password: str, conn: connection) -> dict:
+    hashed_password = hash_password(password)
+    insert_users_query = """
+                    INSERT INTO wishbone."users"
+                        (username, email)
+                    VALUES
+                        (%s, %s)
+                    RETURNING user_id
+                        """
+
+    insert_login_query = """
                     INSERT INTO wishbone."login"
-                    (username, password_hash)
+                    (user_id, password_hash)
                     VALUES
                         (%s, %s)
                     """
 
     cur = conn.cursor()
     try:
-        cur.execute(insert_query, (username, hashed_password.decode()))
+        cur.execute(insert_users_query, (username, email))
+        user_id = cur.fetchone()[0]
+
+    except UniqueViolation as e:
+        return {'success': False, 'msg': str(e)}
+
+    try:
+        cur.execute(insert_login_query, (user_id, hashed_password.decode()))
 
     except UniqueViolation as e:
         return {'success': False, 'msg': str(e)}

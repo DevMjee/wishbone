@@ -6,3 +6,4 @@ aioboto3
 asyncio
 psycopg2-binary
 bcrypt
+email_validator

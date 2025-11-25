@@ -10,7 +10,7 @@ import boto3
 import awswrangler as wr
 import altair as alt
 
-from backend import check_login, hash_password, delete_user, create_user, validate_new_username, validate_new_password, validate_login
+from backend import get_connection
 
 
 load_dotenv()
@@ -21,19 +21,6 @@ session = boto3.Session(
 S3_BUCKET_NAME = environ["BUCKET_NAME"]
 
 LOGO_IMG_PATH = "./wishbone_logo.png"
-
-
-def get_connection() -> connection:
-    "function to return connection to the RDS database"
-    conn = connect(
-        host=environ["RDS_HOST"],
-        user=environ["RDS_USERNAME"],
-        password=environ["RDS_PASSWORD"],
-        dbname=environ["DB_NAME"],
-        port=environ["PORT"],
-    )
-
-    return conn
 
 
 @st.cache_data()
@@ -177,45 +164,6 @@ def decrement_page():
     st.session_state.page -= 1
 
 
-def run_login(conn):
-    username = st.text_input('Username')
-    password = bytes(st.text_input('Password'), encoding='utf-8')
-
-    if st.button(label='Login'):
-        validation = validate_login(username, password)
-
-        if not validation.get('success'):
-            st.text(validation.get('msg'))
-
-        else:
-            response = check_login(username, password, conn)
-            st.text(response.get('msg'))
-
-            if response.get('success'):
-                print('logged in')
-                # TODO USER IS LOGGED IN, DO LOGGED IN THINGS (Session state)
-
-
-def run_create_account(conn):
-    username = st.text_input('Choose a username')
-    u_validation = validate_new_username(username, conn)
-    st.text(u_validation.get('msg'))
-
-    if u_validation.get('success'):
-        password_1 = st.text_input('New Password')
-        password_2 = st.text_input('Confirm Password')
-
-        if st.button('Create account'):
-            p_validation = validate_new_password(
-                password_1, password_2)
-
-            st.text(p_validation.get('msg'))
-
-            if p_validation.get('success'):
-                response = create_user(username, password_1, conn)
-                st.text(response.get('msg'))
-
-
 def create_current_price_metrics() -> None:
     "Creates the dashboard page to display price metrics"
     st.image(image=LOGO_IMG_PATH)
@@ -243,12 +191,6 @@ def create_current_price_metrics() -> None:
 
         yOffset="dataset:N"
     )
-
-    with st.expander(label='Login'):
-        run_login(db_conn)
-
-    with st.expander(label='Create Account'):
-        run_create_account(db_conn)
 
     data = format_data(game_filter, db_conn)
     last_page = len(data)//15

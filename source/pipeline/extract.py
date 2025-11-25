@@ -27,12 +27,12 @@ def get_steam_html(search_input: str) -> str:
     # build url
     response = requests.get(STEAM_SEARCH.format(search_term=search_input))
     raw_data = response.text
-    if raw_data:
-        # get the first result ignoring the headers
-        raw_data = raw_data.split(STEAM_SPLIT)[1]
-        return raw_data
-    raise ValueError(
-        f'{search_input} is invalid and leads to no match')
+    raw_data = raw_data.split(STEAM_SPLIT)
+    if len(raw_data) <= 1:
+        print(f'{search_input} is invalid and leads to no match for Steam')
+        return ''  # len = 1 means no search results found, return falsey value
+    # else get the first result ignoring the headers
+    return raw_data[1]
 
 
 def parse_steam(data: str, search_input: str) -> dict:
@@ -46,7 +46,7 @@ def parse_steam(data: str, search_input: str) -> dict:
     if title:
         title = title.get_text().strip()
     else:
-        raise ValueError(f'No search results found for {search_input}')
+        return {}  # if no match
 
     discount_price = soup.find(
         "div", {"class": "discount_final_price"})
@@ -54,7 +54,7 @@ def parse_steam(data: str, search_input: str) -> dict:
         discount_price = discount_price.get_text().strip()
     else:
         raise ValueError(
-            'Uh oh. Steam must have changed how they label discount prices!')
+            'Have Steam have changed how they label discount prices?')
 
     original_price = soup.find(
         "div", {"class": "discount_original_price"})
@@ -82,13 +82,16 @@ def get_gog_html(search_input: str) -> dict:
     raw_data = dict(response.json()).get('products')
     if raw_data:
         return raw_data[0]  # only the first match
-    raise ValueError(
-        f'{search_input} is invalid and leads to no match')
+    # else:
+    print(f'{search_input} is invalid and leads to no match on GOG')
+    return {}
 
 
 def get_gog_prices(search_input: str, convert_rate: float = DEFAULT_RATE) -> dict:
     data = get_gog_html(search_input)
     title = data.get('title')
+    if not title:  # no matches
+        return {}
 
     prices = data.get('price')
     if not prices:
@@ -127,6 +130,10 @@ def convert_price(value: str, convert_rate: float = DEFAULT_RATE) -> int:
 
 def output(results: dict, destination: str) -> None:
     """Function to create output json file"""
+    if not results:
+        print(f'no matches for {destination}')
+        return
+
     if not os.path.isdir(FOLDER_PATH):
         os.mkdir(FOLDER_PATH)
 

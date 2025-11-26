@@ -7,25 +7,22 @@ import os
 
 
 def lambda_handler(event, context):
-    if not os.path.exists('/tmp/data/'):
-        os.makedirs('/tmp/data/')
-
     try:
         extract_gog()
     except Exception as e:
-        return {'status': 'error', 'msg': f'{str(e)} occured in extract_gog'}
+        return {'status': 'error', 'msg': f'{str(e)} occurred in extract_gog'}
     try:
         export_steam()
     except Exception as e:
-        return {'status': 'error', 'msg': f'{str(e)} occured in extract_steam'}
+        return {'status': 'error', 'msg': f'{str(e)} occurred in extract_steam'}
     try:
         transform_all()
     except Exception as e:
-        return {'status': 'error', 'msg': f'{str(e)} occured in transform'}
+        return {'status': 'error', 'msg': f'{str(e)} occurred in transform'}
     try:
         load_data()
     except Exception as e:
-        return {'status': 'error', 'msg': f'{str(e)} occured in load'}
+        return {'status': 'error', 'msg': f'{str(e)} occurred in load'}
 
     return {'status': 'success', 'msg': 'RDS updated, pipeline successfully run'}
 

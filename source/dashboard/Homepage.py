@@ -216,11 +216,11 @@ def create_current_price_metrics() -> None:
     tracker, _, login = st.columns([3, 10, 3])
 
     if login.button(":blue[Login]"):
-        st.switch_page("./pages/2_login.py")
+        st.switch_page("./pages/2_Login.py")
 
     if tracker.button(":blue[Game Tracker]"):
 
-        st.switch_page("pages/1_tracker.py")
+        st.switch_page("pages/1_Game Tracker.py")
 
     st.image(image=LOGO_IMG_PATH)
 

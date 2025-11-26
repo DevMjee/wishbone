@@ -107,10 +107,10 @@ def create_dashboard() -> None:
     home, _, login = st.columns([3, 10, 3])
 
     if home.button("Home"):
-        st.switch_page("./app.py")
+        st.switch_page("./Homepage.py")
 
     if login.button("Login"):
-        st.switch_page("pages/2_login.py")
+        st.switch_page("pages/2_Login.py")
 
     with st.sidebar:
         with st.expander(label="Choose Games to Track"):

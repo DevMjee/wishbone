@@ -57,10 +57,10 @@ def login():
     tracker, _, home = st.columns([3, 10, 3])
 
     if tracker.button("Game Tracker"):
-        st.switch_page("pages/1_tracker.py")
+        st.switch_page("pages/1_Game Tracker.py")
 
     if home.button("Home"):
-        st.switch_page("./app.py")
+        st.switch_page("./Homepage.py")
 
     db_conn = get_connection()
 

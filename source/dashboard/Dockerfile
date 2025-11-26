@@ -1,4 +1,6 @@
-FROM python:3.12-slim
+FROM python:3.11
+
+WORKDIR /app
 
 RUN apt-get update && \
     apt-get -y install gcc mono-mcs && \
@@ -9,6 +11,7 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8501
 
-COPY app.py backend.py wishbone_logo.png pages/ ./
+COPY pages ./pages
+COPY app.py backend.py wishbone_logo.png ./
 
 CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]

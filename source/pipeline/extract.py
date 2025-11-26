@@ -1,6 +1,5 @@
 """Script which gets data from web api search console, one game at a time"""
 
-import argparse
 import json
 import os
 from bs4 import BeautifulSoup
@@ -28,13 +27,13 @@ def get_steam_html(search_input: str) -> str:
     raw_data = response.text
     raw_data = raw_data.split(STEAM_SPLIT)
     if len(raw_data) <= 1:
-        print(f'{search_input} is invalid and leads to no match for Steam')
+        print(f'{search_input} leads to no match for Steam')
         return ''  # len = 1 means no search results found, return falsey value
     # else get the first result ignoring the headers
     return raw_data[1]
 
 
-def parse_steam(data: str, search_input: str) -> dict:
+def parse_steam(data: str) -> dict:
     """Function to scrape top selling games and output list of dicts with prices and titles"""
     soup = BeautifulSoup(data, 'html.parser')
 
@@ -52,8 +51,9 @@ def parse_steam(data: str, search_input: str) -> dict:
     if discount_price:
         discount_price = discount_price.get_text().strip()
     else:
-        raise ValueError(
-            'Have Steam have changed how they label discount prices?')
+        print(
+            f'Issue grabbing price: {title} must be DLC, only available in a bundle, or not a game')
+        return {}
 
     original_price = soup.find(
         "div", {"class": "discount_original_price"})
@@ -82,7 +82,7 @@ def get_gog_html(search_input: str) -> dict:
     if raw_data:
         return raw_data[0]  # only the first match
     # else:
-    print(f'{search_input} is invalid and leads to no match on GOG')
+    print(f'{search_input} leads to no match on GOG')
     return {}
 
 
@@ -136,22 +136,17 @@ def output(results: dict, destination: str) -> None:
     if not os.path.isdir(FOLDER_PATH):
         os.mkdir(FOLDER_PATH)
 
-    with open(destination, 'w+', encoding='utf-8') as f:
+    with open(destination, 'a+', encoding='utf-8') as f:
         json.dump(results, f, indent=4)
 
 
-def export_games() -> None:
+def extract_games(user_input: str = 'stardew valley') -> None:
 
     os.makedirs(FOLDER_PATH, exist_ok=True)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--search_input", default='stardew valley')
-    args = parser.parse_args()
-    user_input = args.search_input
-
     # steam search
     game = get_steam_html(user_input)
-    output(parse_steam(game, user_input), STEAM_PATH)
+    output(parse_steam(game), STEAM_PATH)
 
     # gog search
     try:
@@ -165,4 +160,4 @@ def export_games() -> None:
 
 
 if __name__ == '__main__':
-    export_games()
+    extract_games()

@@ -7,10 +7,12 @@ import pandas as pd
 from psycopg2.extensions import connection
 from psycopg2 import connect
 
+from extract import extract_games
+
 load_dotenv()
 
 
-def get_game_names() -> pd.DataFrame:
+def get_game_names() -> list[str]:
     """get all names of games we're tracking"""
     athena_query = """SELECT game_name FROM game"""
 
@@ -20,14 +22,14 @@ def get_game_names() -> pd.DataFrame:
     game_names = pd.DataFrame(awswrangler.athena.read_sql_query(
         athena_query, database="wishbone-glue-db", boto3_session=session))
 
-    print(game_names)
-
-    return game_names
+    return game_names['game_name'].to_list()
 
 
 def run_extract():
     """takes the game names from the S3 game table via athena and runs the pipeline on them"""
-    get_game_names()
+    games = get_game_names()
+    for game in games:
+        extract_games(game)
 
 
 if __name__ == "__main__":

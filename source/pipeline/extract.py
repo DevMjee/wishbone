@@ -41,10 +41,10 @@ def parse_steam(data: str) -> dict:
     # class = "discount_final_price" >£10.99
 
     title = soup.find("span", {"class": "title"})
-    if title:
-        title = title.get_text().strip()
-    else:
+    if not title:
         return {}  # if no match
+        
+    title = title.get_text().strip()
 
     discount_price = soup.find(
         "div", {"class": "discount_final_price"})

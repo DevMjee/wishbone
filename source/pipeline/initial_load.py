@@ -38,6 +38,9 @@ def get_game_names() -> list[str]:
 def run_extract():
     """takes the game names from the S3 game table via athena and runs the pipeline on them"""
     games = get_game_names()
+    size = int(len(games)/4)
+    game_chunks = [games[i::size] for i in range(size)]
+
     with multiprocessing.Pool(NUM_PROCESSES) as pool:
         pool.map(extract_games, games)
 

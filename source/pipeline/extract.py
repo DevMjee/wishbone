@@ -138,23 +138,24 @@ def output(results: dict, destination: str) -> None:
         json.dump(results, f, indent=4)
 
 
-def extract_games(user_input: str = 'stardew valley') -> None:
+def extract_games(user_inputs: list[str] = ['stardew valley']) -> None:
 
     os.makedirs(FOLDER_PATH, exist_ok=True)
 
     # steam search
-    game = get_steam_html(user_input)
-    output(parse_steam(game), STEAM_PATH)
+    for user_input in user_inputs:
+        game = get_steam_html(user_input)
+        output(parse_steam(game), STEAM_PATH)
 
-    # gog search
-    try:
-        c = CurrencyRates()
-        usd_to_gbp_rate = float(c.get_rate("USD", "GBP"))
-    except:
-        print("RatesNotAvailableError - Forex API is currently unavailable")
-        usd_to_gbp_rate = DEFAULT_RATE
+        # gog search
+        try:
+            c = CurrencyRates()
+            usd_to_gbp_rate = float(c.get_rate("USD", "GBP"))
+        except:
+            print("RatesNotAvailableError - Forex API is currently unavailable")
+            usd_to_gbp_rate = DEFAULT_RATE
 
-    output(get_gog_prices(user_input, usd_to_gbp_rate), GOG_PATH)
+        output(get_gog_prices(user_input, usd_to_gbp_rate), GOG_PATH)
 
 
 if __name__ == '__main__':

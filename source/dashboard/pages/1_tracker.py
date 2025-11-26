@@ -103,6 +103,7 @@ def create_dashboard() -> None:
     "calls all of the above functions to create the tracking page of the dashboard"
     st.set_page_config(page_title="Game Tracker", page_icon="🎮")
 
+    # using columns to format the positioning of buttons on the dashboard
     home, _, login = st.columns([3, 10, 3])
 
     if home.button("Home"):

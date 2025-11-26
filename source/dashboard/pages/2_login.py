@@ -47,6 +47,7 @@ def run_create_account(conn):
                 st.text(response.get('msg'))
 
 
+# using columns to format the positioning of buttons on the dashboard
 tracker, _, home = st.columns([3, 10, 3])
 
 if tracker.button("Game Tracker"):

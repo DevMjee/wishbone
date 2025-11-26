@@ -1,14 +1,12 @@
-import streamlit as st
-import bcrypt
-import secrets
+"module for creating the streamlit dashboard"
 from os import environ
+import streamlit as st
 from dotenv import load_dotenv
 import pandas as pd
 from psycopg2 import connect
 from psycopg2.extensions import connection
 import boto3
 import awswrangler as wr
-import altair as alt
 
 from backend import get_connection
 
@@ -21,8 +19,7 @@ session = boto3.Session(
 S3_BUCKET_NAME = environ["BUCKET_NAME"]
 
 LOGO_IMG_PATH = "./wishbone_logo.png"
-
-pd.set_option("display.precision", 2)
+NUM_PER_PAGE = 10
 
 
 @st.cache_data()
@@ -65,7 +62,7 @@ def check_if_game_dropped_price(_conn: connection) -> pd.DataFrame:
 
     athena_query = """WITH price_cte AS (
             SELECT game_id, recording_date, price, platform_id,
-            LAG(price) OVER (PARTITION BY game_id ORDER BY recording_date) as prev_price
+            LAG(price,3) OVER (PARTITION BY game_id ORDER BY recording_date) as prev_price
             FROM listing
             )
             SELECT DISTINCT g.game_id, g.game_name, price_cte.price as new_price, price_cte.prev_price as old_price, price_cte.recording_date, p.platform_name
@@ -76,11 +73,10 @@ def check_if_game_dropped_price(_conn: connection) -> pd.DataFrame:
                 price_cte.platform_id = p.platform_id
             WHERE price < prev_price"""
 
-    session = boto3.Session(aws_access_key_id=environ["ACCESS_KEY_ID"],
-                            aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY_ID"], region_name='eu-west-2')
-
     game_id_df = wr.athena.read_sql_query(
         athena_query, database="wishbone-glue-db", boto3_session=session)
+
+    game_id_df = game_id_df.drop_duplicates('game_name')
 
     return game_id_df
 
@@ -148,10 +144,7 @@ def format_data(game_filter: list, conn: connection, sort_by, sort_dir) -> pd.Da
         "new_price": "Price"
     })
 
-    if sort_dir == "Ascending":
-        sort_dir = True
-    else:
-        sort_dir = False
+    sort_dir = sort_dir in ["Ascending"]
 
     data = data.sort_values(by=sort_by, ascending=sort_dir)
 
@@ -180,11 +173,10 @@ def create_discount_filter() -> list:
 
 def create_paginated_df(conn: connection, game_filter, page_num, sort_by, sort_dir):
     "uses session state to create a dataframe with pages"
-    num_per_page = 10
     unpaged_df = format_data(game_filter, conn, sort_by, sort_dir)
 
-    start = page_num * num_per_page
-    end = (1+page_num) * num_per_page
+    start = page_num * NUM_PER_PAGE
+    end = (1+page_num) * NUM_PER_PAGE
 
     paged_df = unpaged_df[start:end]
 
@@ -194,7 +186,8 @@ def create_paginated_df(conn: connection, game_filter, page_num, sort_by, sort_d
 def create_sorting_choice_filter() -> str:
     "function to allow user to choose a parameter to sort the dataframe by"
 
-    option = st.selectbox(label="Sort By", options=["Discount", "Price"])
+    option = st.selectbox(label="Sort By", options=[
+                          "Discount", "Price"])
     return option
 
 
@@ -218,18 +211,20 @@ def decrement_page() -> None:
 def create_current_price_metrics() -> None:
     "Creates the dashboard page to display price metrics"
 
+    # using columns to format the positioning of buttons on the dashboard
+    # the _ defines the spacing between the tracker and login columns as 10 units
     tracker, _, login = st.columns([3, 10, 3])
 
-    if login.button("Login"):
+    if login.button(":blue[Login]"):
         st.switch_page("./pages/2_login.py")
 
-    if tracker.button("Game Tracker"):
+    if tracker.button(":blue[Game Tracker]"):
 
         st.switch_page("./pages/1_tracker.py")
 
     st.image(image=LOGO_IMG_PATH)
 
-    st.title("Welcome to Wishbone!")
+    st.title(":grey[Welcome to Wishbone!]")
 
     db_conn = get_connection()
 
@@ -243,21 +238,22 @@ def create_current_price_metrics() -> None:
     data = format_data(game_filter, db_conn, sort_by, sort_dir)
     last_page = len(data)//15
 
-    prev, _, next = st.columns([3, 10, 3])
+    # using columns to format the positioning of buttons on the dashboard
+    prev_button, _, next_button = st.columns([3, 10, 3])
 
     if 'page' not in st.session_state:
         st.session_state.page = 0
 
     page_num = st.session_state.page
 
-    if next.button("Next", on_click=increment_page):
+    if next_button.button(":blue[Next]", on_click=increment_page):
 
         if st.session_state.page > last_page:
             st.session_state.page = 0
 
         page_num = st.session_state.page
 
-    if prev.button("Previous", on_click=decrement_page):
+    if prev_button.button(":blue[Previous]", on_click=decrement_page):
 
         if st.session_state.page < 0:
             st.session_state.page = last_page

@@ -200,8 +200,8 @@ def create_sorting_choice_filter() -> str:
 
 def create_direction_sorting_filter() -> str:
     "function to create an option to sort by price ascending or descending"
-    option = st.radio(label='', options=[
-                      'Descending', 'Ascending'])
+    option = st.radio(label='Order by', options=[
+                      'Descending', 'Ascending'], label_visibility='hidden')
     return option
 
 

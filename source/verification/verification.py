@@ -24,7 +24,7 @@ def get_emails_in_tracking_table() -> list:
     """gets the emails of the people tracking games"""
     conn = get_db_connection()
     query = """SELECT DISTINCT email
-                        FROM wishbone.tracking
+                    FROM wishbone.tracking
                     """
     emails_df = pd.read_sql(query, con=conn)
 
@@ -33,11 +33,10 @@ def get_emails_in_tracking_table() -> list:
     return list_emails
 
 
-def verify_email(user_email: str) -> bool:
+def verify_email(user_email: str, ses_client: boto3.client) -> bool:
     """checks if the email is verified or not"""
 
-    ses = boto3.client('ses')
-    response = ses.list_verified_email_addresses()
+    response = ses_client.list_verified_email_addresses()
     verified_emails = response.get("VerifiedEmailAddresses")
 
     if user_email in verified_emails:
@@ -63,9 +62,7 @@ def lambda_handler(event, context):
     """takes the emails from the RDS and drops any that have not been verified"""
 
     tracking_emails = get_emails_in_tracking_table()
-
+    ses = boto3.client('ses')
     for email in tracking_emails:
-        if verify_email(email) is False:
+        if verify_email(email, ses) is False:
             remove_unverified_email(email)
-
-

@@ -6,15 +6,7 @@ from os import environ
 from dotenv import load_dotenv
 import altair as alt
 import pandas as pd
-from backend import run_unsubscribe
-from backend import run_subscribe
-
-load_dotenv()
-session = boto3.Session(
-    aws_access_key_id=environ["ACCESS_KEY_ID"],
-    aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY_ID"],
-    region_name="eu-west-2")
-S3_BUCKET_NAME = environ["BUCKET_NAME"]
+from backend import run_unsubscribe, run_subscribe, get_boto3_session
 
 
 @st.cache_data()
@@ -35,19 +27,6 @@ def get_data() -> pd.DataFrame:
     })
     data = data.drop_duplicates()
     return data
-
-
-def unsub_button(email: str) -> dict:
-    "Added button to unsubscribe email from email service"
-    unsub = st.button(
-        label='Unsubscribe from all',
-        help='click to remove your email from our system'
-    )
-    response = {'status': 'idle', 'msg': 'button not pressed'}
-    if unsub:
-        response = run_unsubscribe(email)
-
-    return response
 
 
 def sub_selects() -> list:
@@ -143,12 +122,12 @@ def create_dashboard() -> None:
 
     games = sub_selects()
     sub_button(email, games)
-    response = unsub_button(email)
-    if not response.get('status') == 'idle':
-        st.text(response.get('msg'))
 
-    print(response)
+    if st.button('Unsubscribe from all'):
+        run_unsubscribe(email)
 
 
 if __name__ == "__main__":
+    load_dotenv()
+    session = get_boto3_session()
     create_dashboard()

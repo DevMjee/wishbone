@@ -6,11 +6,19 @@ from psycopg2.extensions import connection
 from psycopg2.errors import UniqueViolation
 import bcrypt
 import pandas as pd
+import boto3
 from os import environ
 from dotenv import load_dotenv
 from email_validator import validate_email, EmailNotValidError
 
 load_dotenv()
+
+
+def get_boto3_session():
+    return boto3.Session(
+        aws_access_key_id=environ["ACCESS_KEY_ID"],
+        aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY_ID"],
+        region_name="eu-west-2")
 
 
 def get_connection() -> connection:

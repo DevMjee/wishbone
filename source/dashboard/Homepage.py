@@ -3,15 +3,10 @@ from os import environ
 import streamlit as st
 from dotenv import load_dotenv
 import pandas as pd
-import boto3
 import awswrangler as wr
+from backend import get_boto3_session
 
 
-load_dotenv()
-session = boto3.Session(
-    aws_access_key_id=environ["ACCESS_KEY_ID"],
-    aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY_ID"],
-    region_name="eu-west-2")
 S3_BUCKET_NAME = environ["BUCKET_NAME"]
 
 LOGO_IMG_PATH = "https://raw.githubusercontent.com/DevMjee/wishbone/refs/heads/main/assets/logo.png"
@@ -210,6 +205,8 @@ def create_current_price_metrics() -> None:
 
 
 if __name__ == "__main__":
+    load_dotenv()
+    session = get_boto3_session()
     if "logged_in" not in st.session_state:
         st.session_state.logged_in = False
 

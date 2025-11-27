@@ -56,9 +56,6 @@ def get_glue_db_data() -> pd.DataFrame:
     data = data.dropna()
     return data
 
-# TODO: create a df from glue data, create an extra column that is the highest price for each game,
-# filter the data by if the latest price of any given game is less than this highest
-
 
 @st.cache_data()
 def create_max_price_column() -> pd.DataFrame:

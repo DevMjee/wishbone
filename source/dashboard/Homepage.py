@@ -208,11 +208,20 @@ def decrement_page() -> None:
     st.session_state.page -= 1
 
 
+def account_button():
+    _, _, user = st.columns([3, 10, 3])
+    with user.expander(st.session_state.username):
+        if st.button('Account'):
+            st.switch_page("pages/2_Login.py")
+
+
 def create_current_price_metrics() -> None:
     "Creates the dashboard page to display price metrics"
 
     # using columns to format the positioning of buttons on the dashboard
     # the _ defines the spacing between the tracker and login columns as 10 units
+    if 'username' in st.session_state:
+        account_button()
     tracker, _, login = st.columns([3, 10, 3])
 
     if login.button(":blue[Login]"):
@@ -269,4 +278,8 @@ def create_current_price_metrics() -> None:
     })
 
 
-create_current_price_metrics()
+if __name__ == "__main__":
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    create_current_price_metrics()

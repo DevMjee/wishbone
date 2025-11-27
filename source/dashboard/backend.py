@@ -89,9 +89,7 @@ def hash_password(password: str) -> bytes:
 def delete_user(username: str, conn: connection) -> None:
     """Deletes a user from the login database (not implemented yet)"""
     delete_query = f"""
-                    DELETE FROM wishbone."login"
-                    JOIN wishbone."users"
-                        USING(user_id)
+                    DELETE FROM wishbone."users" CASCADE
                     WHERE username = '{username}';
                     """
 
@@ -236,3 +234,7 @@ def run_subscribe(email: str, game_id):
         'game_id': str(game_id)
     }
     return asyncio.run(trigger_lambda(payload))
+
+
+if __name__ == "__main__":
+    delete_user('john', get_connection())

@@ -99,11 +99,20 @@ def create_game_name_filter() -> list:
     return games_filter
 
 
+def account_button():
+    _, _, user = st.columns([3, 10, 3])
+    with user.expander(st.session_state.username):
+        if st.button('Account'):
+            st.switch_page("pages/2_Login.py")
+
+
 def create_dashboard() -> None:
     "calls all of the above functions to create the tracking page of the dashboard"
     st.set_page_config(page_title="Game Tracker", page_icon="🎮")
 
     # using columns to format the positioning of buttons on the dashboard
+    if 'username' in st.session_state:
+        account_button()
     home, _, login = st.columns([3, 10, 3])
 
     if home.button("Home"):
@@ -126,7 +135,11 @@ def create_dashboard() -> None:
     chart = create_price_vs_time_chart(st.session_state.game_filter)
     st.altair_chart(chart)
 
-    email = st.text_input('Email', "example@domain.com", )
+    if 'email' in st.session_state:
+        email = st.text_input('Email', st.session_state.email)
+
+    else:
+        email = st.text_input('Email')
     games = sub_selects()
     sub_button(email, games)
     response = unsub_button(email)
@@ -136,4 +149,5 @@ def create_dashboard() -> None:
     print(response)
 
 
-create_dashboard()
+if __name__ == "__main__":
+    create_dashboard()

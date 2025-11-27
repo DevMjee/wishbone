@@ -11,6 +11,7 @@ from extract import extract_games
 from transform import transform_all
 from load import load_data
 
+CHUNK_NUM = 4
 NUM_PROCESSES = 64
 # Most recent duration test
 #     16: 242 seconds
@@ -68,7 +69,7 @@ def pipeline(game_inputs: list[str]) -> None:
 def run_extract():
     """takes the game names from the S3 game table via athena and runs the pipeline on them"""
     games = get_game_names()
-    size = int(len(games)/4)
+    size = int(len(games)/CHUNK_NUM)
     game_chunks = [games[i::size] for i in range(size)]
 
     with multiprocessing.Pool(NUM_PROCESSES) as pool:

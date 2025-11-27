@@ -16,7 +16,7 @@ STEAM_SPLIT = '<div class="search_name ellipsis">'
 
 GOG_PATH = f'{FOLDER_PATH}gog_products.json'
 GOG_SEARCH = 'https://catalog.gog.com/v1/catalog?limit=48&query=like%3A{search_term}'
-DEFAULT_RATE = 0.77
+DEFAULT_RATE = 0.77  # as of 19 nov 2025
 
 # <--- Steam functions --->
 

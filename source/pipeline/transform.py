@@ -17,14 +17,21 @@ YESTERDAY = TODAY - timedelta(days=1)
 # ggg
 
 
+def read_data(filename: str) -> list[dict]:
+    with open(f'{DIRECTORY}{filename}', 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def calculate_discount(source_dataframe: pd.DataFrame) -> pd.DataFrame:
+
+
 def transform_source(filename: str) -> pd.DataFrame:
     """
     Reads data from a JSON file into a Pandas dataframe
     and transforms it to the format expected by load script
     """
     # Read data from file
-    with open(f'{DIRECTORY}{filename}', 'r', encoding='utf-8') as f:
-        source_data = json.load(f)
+    source_data = read_data(filename)
 
     # Create dataframe
     source_dataframe = pd.DataFrame(source_data)

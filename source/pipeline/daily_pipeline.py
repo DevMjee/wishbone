@@ -7,7 +7,9 @@ import pandas as pd
 import multiprocessing
 import time
 
-from extract import pipeline
+from extract import extract_games
+from transform import transform_all
+from load import load_data
 
 NUM_PROCESSES = 64
 # Most recent duration test
@@ -54,6 +56,13 @@ def get_game_names() -> list[str]:
 
     raise ValueError(
         'Not unique names! How could this happen? The SQL Query was magnificent!')
+
+
+def pipeline(game_inputs: list[str]) -> None:
+    """pipeline for multiprocessing"""
+    extract_games(game_inputs)
+    transform_all()
+    load_data()
 
 
 def run_extract():

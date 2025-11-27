@@ -7,9 +7,6 @@ from bs4 import BeautifulSoup
 from forex_python.converter import CurrencyRates
 import requests
 
-from transform import transform_all
-from load import load_data
-
 
 FOLDER_PATH = 'data/'  # needs to be /tmp/data for lambda
 
@@ -165,13 +162,6 @@ def extract_games(game_inputs: list[str] = ['stardew valley']) -> None:
 
     output(steam_games, STEAM_PATH)
     output(gog_games, GOG_PATH)
-
-
-def pipeline(game_inputs: list[str]) -> None:
-    """pipeline for multiprocessing"""
-    extract_games(game_inputs)
-    transform_all()
-    load_data()
 
 
 if __name__ == '__main__':

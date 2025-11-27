@@ -23,41 +23,6 @@ NUM_PER_PAGE = 10
 
 
 @st.cache_data()
-def get_rds_data(_conn: connection) -> pd.DataFrame:
-    "connects to database, connects to wishbone schema and checks data is there"
-    data = pd.read_sql("""set search_path to wishbone;
-                       select g.game_name,l.price,p.platform_name
-                                    from listing l
-                                    join game g
-                                    on g.game_id=l.game_id
-                                    join platform p
-                                    on p.platform_id=l.platform_id;""", con=_conn)
-    data = data.drop_duplicates()
-    return data
-
-
-@st.cache_data()
-def get_glue_db_data() -> pd.DataFrame:
-    "queries the Glue DB and returns game data"
-    data = wr.athena.read_sql_query("""
-    select g.game_id,g.game_name, l.price, l.recording_date, p.platform_name
-                                    from listing l
-                                    join game g
-                                    on g.game_id=l.game_id
-                                    join platform p
-                                    on p.platform_id=l.platform_id
-
-""", database='wishbone-glue-db')
-
-    data = data.rename(columns={
-        "game_name": "Game",
-    })
-    data = data.drop_duplicates()
-    data = data.dropna()
-    return data
-
-
-@st.cache_data()
 def create_max_price_column() -> pd.DataFrame:
     query = """
         with price_cte as (select game_id, price, recording_date, platform_id, max(price) over (partition by game_id) as max_price

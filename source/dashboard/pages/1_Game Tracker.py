@@ -28,7 +28,7 @@ def get_data() -> pd.DataFrame:
                                     join platform p
                                     on p.platform_id=l.platform_id
                                     
-""", database='wishbone-glue-db')
+""", database='wishbone-glue-db', boto3_session=session)
 
     data = data.rename(columns={
         "game_name": "Game",

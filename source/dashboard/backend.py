@@ -115,11 +115,11 @@ def validate_login(identity: str, password: str) -> dict:
 
 def validate_new_password(password_1: str, password_2: str) -> dict:
     """Enforces constraints on new passwords"""
-    # TODO: Add more strict password rules
+    MIN_PASSWORD_LEN = 8
     if not password_1:
         return {'success': False, 'msg': 'Password cannot be blank.'}
 
-    if not len(password_1) >= 8:
+    if not len(password_1) >= MIN_PASSWORD_LEN:
         return {'success': False, 'msg': 'Password must be at least 8 characters long.'}
 
     if not password_1 == password_2:

@@ -1,6 +1,5 @@
 """Script for loading data to RDS"""
 import json
-import os
 import psycopg2
 from dotenv import load_dotenv
 from datetime import date

@@ -1,0 +1,9 @@
+[theme]
+
+primaryColor = "FF7518"
+backgroundColor = "#FFE5B4"
+secondaryBackgroundColor = "#FF924D"
+textColor = "black"
+dataframeHeaderBackgroundColor = "#FF924D"
+font = "Nunito:https://fonts.googleapis.com/css2?family=Nunito&display=swap"
+

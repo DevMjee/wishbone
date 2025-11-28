@@ -3,7 +3,6 @@ from extract_gog import extract_gog
 from extract_steam import export_steam
 from transform import transform_all
 from load import load_data
-import os
 
 
 def lambda_handler(event, context):

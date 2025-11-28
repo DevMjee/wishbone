@@ -1,7 +1,6 @@
 """Script for transforming data for storage in RDS"""
 
 import json
-import os
 from datetime import date, timedelta
 import pandas as pd
 

@@ -15,14 +15,68 @@ YESTERDAY = TODAY - timedelta(days=1)
 # TODAY = YESTERDAY
 
 
+def read_data(filename: str) -> list[dict]:
+    """Returns the JSON in source file as a list of dictionaries"""
+    with open(f'{DIRECTORY}{filename}', 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def calculate_discount(data: pd.DataFrame) -> pd.DataFrame:
+    """Calculates the percentage discount as a column"""
+    valid = data["base_price_gbp_pence"] > 0
+
+    data["discount_percent"] = (
+        (1 - data["final_price_gbp_pence"] /
+         data["base_price_gbp_pence"]) * 100
+    ).where(valid).round().astype("Int64")
+
+    return data
+
+
+def cast_to_int(data: pd.DataFrame) -> pd.DataFrame:
+    """converts the values to ints"""
+    try:
+        data['base_price_gbp_pence'] = data['base_price_gbp_pence'].astype(
+            'Int64')
+    except ValueError:
+        raise ValueError("Base price not able to be converted")
+
+    try:
+        data['final_price_gbp_pence'] = data['final_price_gbp_pence'].astype(
+            'Int64')
+    except ValueError:
+        raise ValueError("Final price not able to be converted")
+
+    return data
+
+
+def reorder_columns(data: pd.DataFrame) -> pd.DataFrame:
+    """reorders the columns to be in the correct order"""
+    data.rename(columns={'name': 'game_name',
+                         'base_price_gbp_pence': 'retail_price',
+                         'final_price_gbp_pence': 'final_price'}, inplace=True)
+
+    data = data[['game_name', 'retail_price', 'platform_name',
+                 'listing_date', 'discount_percent', 'final_price']].copy()
+
+    return data
+
+
+def get_relevant_columns(data: pd.DataFrame) -> pd.DataFrame:
+    """gets only the columns needed"""
+    data = data[['name', 'base_price_gbp_pence',
+                 'final_price_gbp_pence', 'discount_percent']].copy()
+
+    return data
+
+
 def transform_source(filename: str) -> pd.DataFrame:
     """
     Reads data from a JSON file into a Pandas dataframe
     and transforms it to the format expected by load script
     """
     # Read data from file
-    with open(f'{DIRECTORY}{filename}', 'r', encoding='utf-8') as f:
-        source_data = json.load(f)
+    source_data = read_data(filename)
 
     # Create dataframe
     source_dataframe = pd.DataFrame(source_data)
@@ -30,22 +84,15 @@ def transform_source(filename: str) -> pd.DataFrame:
     # Drop NaN values
     source_dataframe.dropna(subset=['base_price_gbp_pence'], inplace=True)
 
-    # Create boolean series to check which values to calculate discount for (avoid dividing by 0)
-    valid = source_dataframe["base_price_gbp_pence"] > 0
-
-    # Calculate discount percentage
-    source_dataframe["discount_percent"] = (
-        (1 - source_dataframe["final_price_gbp_pence"] /
-         source_dataframe["base_price_gbp_pence"]) * 100
-    ).where(valid).round().astype("Int64")
+    # Calculate discount percentages
+    source_dataframe = calculate_discount(source_dataframe)
 
     # Fill NaN values in discount percentage with zero
     source_dataframe.loc[:, 'discount_percent'] = source_dataframe['discount_percent'].fillna(
         0)
 
     # Redefine dataframe with relevant columns
-    source_dataframe = source_dataframe[['name', 'base_price_gbp_pence',
-                                         'final_price_gbp_pence', 'discount_percent']].copy()
+    source_dataframe = get_relevant_columns(source_dataframe)
 
     # Set platform name for all rows based on which file is being read
     # (e.g. reading from gog_products.json sets platform_name to 'gog')
@@ -55,23 +102,14 @@ def transform_source(filename: str) -> pd.DataFrame:
     source_dataframe.loc[:, 'listing_date'] = TODAY
 
     # Cast prices to integers
-    source_dataframe['base_price_gbp_pence'] = source_dataframe['base_price_gbp_pence'].astype(
-        'Int64')
-
-    source_dataframe['final_price_gbp_pence'] = source_dataframe['final_price_gbp_pence'].astype(
-        'Int64')
+    source_dataframe = cast_to_int(source_dataframe)
 
     # Cast listing date to string
     source_dataframe['listing_date'] = source_dataframe['listing_date'].astype(
         'string')
 
     # Rename and reorder columns to be in line with load script input
-    source_dataframe.rename(columns={'name': 'game_name',
-                                     'base_price_gbp_pence': 'retail_price',
-                                     'final_price_gbp_pence': 'final_price'}, inplace=True)
-
-    source_dataframe = source_dataframe[['game_name', 'retail_price', 'platform_name',
-                                         'listing_date', 'discount_percent', 'final_price']].copy()
+    source_dataframe = reorder_columns(source_dataframe)
 
     return source_dataframe
 
@@ -92,4 +130,12 @@ def transform_all():
 
 
 if __name__ == "__main__":
-    transform_all()
+    # transform_all()
+
+    data = {
+        "base_price_gbp_pence": [-1, -1, -1],
+        "final_price_gbp_pence": [50, 40, 45]
+    }
+    df = pd.DataFrame(data)
+
+    calculate_discount(df)

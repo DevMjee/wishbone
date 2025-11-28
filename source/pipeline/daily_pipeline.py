@@ -29,7 +29,7 @@ def get_game_names() -> list[str]:
     SELECT
         DISTINCT g.game_name,
         l.recording_date
-    FROM 
+    FROM
         game g
     JOIN
         listing l
@@ -68,6 +68,16 @@ def pipeline(game_inputs: list[str]) -> None:
 
 def run_extract():
     """takes the game names from the S3 game table via athena and runs the pipeline on them"""
+    games = get_game_names()
+    size = int(len(games)/CHUNK_NUM)
+    game_chunks = [games[i::size] for i in range(size)]
+
+    with multiprocessing.Pool(NUM_PROCESSES) as pool:
+        pool.map(pipeline, game_chunks)
+
+
+def lambda_handler(event, context):
+    """for the lambda"""
     games = get_game_names()
     size = int(len(games)/CHUNK_NUM)
     game_chunks = [games[i::size] for i in range(size)]

@@ -13,7 +13,6 @@ TODAY = date.today()
 # for testing historical pipeline deletion
 YESTERDAY = TODAY - timedelta(days=1)
 # TODAY = YESTERDAY
-# ggg
 
 
 def read_data(filename: str) -> list[dict]:
@@ -35,11 +34,17 @@ def calculate_discount(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def cast_to_int(data: pd.DataFrame) -> pd.DataFrame:
-    data['base_price_gbp_pence'] = data['base_price_gbp_pence'].astype(
-        'Int64')
+    try:
+        data['base_price_gbp_pence'] = data['base_price_gbp_pence'].astype(
+            'Int64')
+    except ValueError:
+        raise ValueError("Base price not able to be converted")
 
-    data['final_price_gbp_pence'] = data['final_price_gbp_pence'].astype(
-        'Int64')
+    try:
+        data['final_price_gbp_pence'] = data['final_price_gbp_pence'].astype(
+            'Int64')
+    except ValueError:
+        raise ValueError("Final price not able to be converted")
 
     return data
 
@@ -55,7 +60,7 @@ def reorder_columns(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def get_relevant_colummns(data: pd.DataFrame) -> pd.DataFrame:
+def get_relevant_columns(data: pd.DataFrame) -> pd.DataFrame:
     data = data[['name', 'base_price_gbp_pence',
                  'final_price_gbp_pence', 'discount_percent']].copy()
 
@@ -84,7 +89,7 @@ def transform_source(filename: str) -> pd.DataFrame:
         0)
 
     # Redefine dataframe with relevant columns
-    source_dataframe = get_relevant_colummns(source_dataframe)
+    source_dataframe = get_relevant_columns(source_dataframe)
 
     # Set platform name for all rows based on which file is being read
     # (e.g. reading from gog_products.json sets platform_name to 'gog')
@@ -122,4 +127,12 @@ def transform_all():
 
 
 if __name__ == "__main__":
-    transform_all()
+    # transform_all()
+
+    data = {
+        "base_price_gbp_pence": [-1, -1, -1],
+        "final_price_gbp_pence": [50, 40, 45]
+    }
+    df = pd.DataFrame(data)
+
+    calculate_discount(df)

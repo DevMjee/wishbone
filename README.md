@@ -1,19 +1,62 @@
-# Wishbone!
+# Wishbone
+
+
 ## What is Wishbone?
-## Architecture
-## User Stories
 
-### Graham - gamer with a low budget
+Wishbone is a tool for comparing video-game prices across multiple online marketplaces, with a focus on helping users find the best deals.  
 
-I'm Graham and I really like playing games. Steam is my go-to, but recently I've had to dedicate more of my income to living expenses so I don't have as much money as before to spend on playing new games. I want a way to easily compare the prices for any given game across multiple providers so I can get the game at the lowest price. Knowing about upcoming sales would be great!
+It aims to offer:
+- Price data from various storefronts  
+- Notifications, tracking for price drops and sales  
 
-### Louise - Customer Satisfaction manager at W-Games
+## Architecture & Components
 
-I'm Louise and I have the role at W-Games of ensuring customers are satisfied. W-Games is an upcoming games provider and a strategy that has been introduced to attract more customers is a price matching scheme. The idea is that at any given time, W-Games provides either a better price or better value for money than any other platform. To do this, I need to know about price trends in the market and sales occurring at any given time.
+The project is implemented in Python, with supporting terraform, scripts, Docker configs, and more. Key components include:
 
-### Davide - gamer who has been previously scammed
+- `source/` — core application code, data-fetching, parsing, backend logic.  
+- `database/` — storage backend, schema for tables on the RDS 
+- `assets/`, `diagrams/` —  architecture diagrams, ERD logos.  
+- `requirements.txt` — list of external dependencies / Python packages.  
 
-I'm Davide and I really like playing games, especially when they're really cheap! In the past, I have used tools to find the platform that provides the games I want at the best price, however these platforms kept my data and as a result I lost a lot of money as my credit card details were stolen. I want to be able to use similar tools without data privacy issues, as I don't want to spend loads of time scouring the internet for good deals. 
 
-## How to use
-## Credits
+## User Stories / Use Cases
+
+Wishbone is designed with different types of users in mind. Some example scenarios:
+
+- **Budget-conscious gamer**  
+  > I want a way to easily compare the prices for any given game across multiple providers so I can get the game at the lowest price.  
+
+- **Marketplace price-matching manager**  
+  > I want to know about price trends in the market and sales occurring at any given time — to ensure our platform always offers better value.  
+
+
+
+
+### Configuration
+
+The script requires the following environment variables, loaded locally via a `.env` file:  
+
+| Variable | Description |
+|----------|-------------|
+| `RDS_HOST` | RDS database host |
+| `RDS_USER` | Database username |
+| `RDS_PASSWORD` | Database password |
+| `DB_NAME` | Database name |
+| `PORT` | RDS access |
+| `ACCESS_KEY_ID` | AWS access key for Athena queries |
+| `AWS_SECRET_ACCESS_KEY_ID` | AWS secret key for Athena queries |
+| `SENDER_EMAIL` | Email for sending alert emails from |
+
+
+
+
+## Credits 
+- Annie Bullough - Quality Assurance, Data Engineer & Analyst
+- Adam Cummings - Architect, Data Engineer & Analyst
+- Ronn Marakkalsherry - Business Analyst, Data Engineer & Analyst
+- Dev Mukherjee - Project Manager, Data Engineer & Analyst
+- Mahfuzur Rahman - Architect, Data Engineer & Analyst
+
+
+
+

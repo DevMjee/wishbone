@@ -192,4 +192,42 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-tracking-tl-lifecycle-policy" 
 EOF
 }
 
+#create ECR to store the email verification Docker Image
+resource "aws_ecr_repository" "c20-wishbone-verification-ecr" {
+  name = "c20-wishbone-verification-ecr"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = "dev"
+    Project = "wishbone"
+  }
+}
+
+# policy so that only one image is in the ECR at a time
+resource "aws_ecr_lifecycle_policy" "c20-wishbone-verification-lifecycle-policy" {
+  repository = aws_ecr_repository.c20-wishbone-verification-ecr.name
+
+  policy = <<EOF
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+            "description": "Keep only latest image",
+            "selection": {
+                "tagStatus": "any",
+                "countType": "imageCountMoreThan",
+                "countNumber": 1
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}
+EOF
+}
+
 

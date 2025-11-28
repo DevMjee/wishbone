@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import pandas as pd
 
 
-DIRECTORY = 'data/'
+DIRECTORY = '/tmp/data/'
 SOURCE_FILES = ['gog_products.json', 'steam_products.json']
 OUTPUT_PATH = f'{DIRECTORY}clean_data.json'
 TEST_DATA = 'test_products.json'

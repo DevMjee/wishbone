@@ -8,7 +8,7 @@ from os import environ
 load_dotenv()
 
 
-DATA_PATH = "data/clean_data.json"
+DATA_PATH = "/tmp/data/clean_data.json"
 
 
 def get_connection():

@@ -9,4 +9,4 @@ RUN mkdir data/
 
 COPY extract.py transform.py load.py etl_pipeline.py ./
 
-CMD [ "pipeline.lambda_handler" ]
+CMD [ "etl_pipeline.lambda_handler" ]

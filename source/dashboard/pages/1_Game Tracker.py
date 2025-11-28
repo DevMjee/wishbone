@@ -11,7 +11,7 @@ from backend import run_unsubscribe, run_subscribe, get_boto3_session
 
 @st.cache_data()
 def get_data() -> pd.DataFrame:
-    "queries the Glue DB and returns game data"
+    """queries the Glue DB and returns game data"""
     data = wr.athena.read_sql_query("""
     select g.game_id,g.game_name, l.price, l.recording_date, p.platform_name
                                     from listing l
@@ -30,7 +30,7 @@ def get_data() -> pd.DataFrame:
 
 
 def sub_selects() -> list:
-    "multiselect option to select games to subscribe to"
+    """multiselect option to select games to subscribe to"""
     games = get_data()['Game']
     sub = st.multiselect(
         label="Select Games to subscribe to",
@@ -40,7 +40,7 @@ def sub_selects() -> list:
 
 
 def sub_button(email: str, games: list) -> None:
-    "button to subscribe to all games selected in sub_selects"
+    """button to subscribe to all games selected in sub_selects"""
     game_ids = get_data()[['game_id', 'Game']]
     filtered_ids = game_ids[game_ids['Game'].isin(games)]
     sub = st.button(
@@ -52,7 +52,7 @@ def sub_button(email: str, games: list) -> None:
 
 
 def create_price_vs_time_chart(game_filter: list) -> alt.Chart:
-    "creates a price vs time chart for every selected game"
+    """creates a price vs time chart for every selected game"""
     data = get_data()
     data['recording_date'] = data['recording_date'].dt.date
     data['price'] = data['price'].astype(float)/100
@@ -70,7 +70,7 @@ def create_price_vs_time_chart(game_filter: list) -> alt.Chart:
 
 
 def create_game_name_filter() -> list:
-    "create filter to filter the data for the graph by game name"
+    """create filter to filter the data for the graph by game name"""
     games = get_data()['Game'].unique()
 
     games_filter = st.multiselect(
@@ -86,7 +86,7 @@ def account_button():
 
 
 def create_dashboard() -> None:
-    "calls all of the above functions to create the tracking page of the dashboard"
+    """calls all of the above functions to create the tracking page of the dashboard"""
     st.set_page_config(page_title="Game Tracker", page_icon="🎮")
 
     # using columns to format the positioning of buttons on the dashboard

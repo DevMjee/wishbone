@@ -143,3 +143,8 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     print(lambda_handler({}, None))
+
+    email_body = create_html_email(
+        "Warhammer: Vermintide 2", "£23.79", "£0.00")
+    send_out_email("adamcummings20@gmail.com",
+                   email_body, "Warhammer: Vermintide 2")

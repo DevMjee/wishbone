@@ -30,7 +30,24 @@ CREATE TABLE listing(
     discount_percent INT NOT NULL,
     recording_date DATE CHECK (recording_date <= CURRENT_DATE),
     PRIMARY KEY(listing_id),
+    UNIQUE (game_id, platform_id, discount_percent, price, recording_date),
     FOREIGN KEY (game_id) REFERENCES game(game_id),
     FOREIGN KEY (platform_id) REFERENCES platform(platform_id)
 );
 
+
+CREATE TABLE user(
+    user_id INT GENERATED ALWAYS AS identity (MINVALUE 1 START WITH 1 INCREMENT BY 1),
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    PRIMARY KEY(user_id)
+);
+
+CREATE TABLE login(
+    login_id INT GENERATED ALWAYS AS identity (MINVALUE 1 START WITH 1 INCREMENT BY 1),
+    user_id INT UNIQUE NOT NULL,
+    password_hash TEXT UNIQUE NOT NULL,
+    created TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY(login_id),
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
+);

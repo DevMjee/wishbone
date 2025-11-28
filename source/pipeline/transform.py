@@ -34,6 +34,7 @@ def calculate_discount(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def cast_to_int(data: pd.DataFrame) -> pd.DataFrame:
+    """converts the values to ints"""
     try:
         data['base_price_gbp_pence'] = data['base_price_gbp_pence'].astype(
             'Int64')
@@ -50,6 +51,7 @@ def cast_to_int(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def reorder_columns(data: pd.DataFrame) -> pd.DataFrame:
+    """reorders the columns to be in the correct order"""
     data.rename(columns={'name': 'game_name',
                          'base_price_gbp_pence': 'retail_price',
                          'final_price_gbp_pence': 'final_price'}, inplace=True)
@@ -61,6 +63,7 @@ def reorder_columns(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_relevant_columns(data: pd.DataFrame) -> pd.DataFrame:
+    """gets only the columns needed"""
     data = data[['name', 'base_price_gbp_pence',
                  'final_price_gbp_pence', 'discount_percent']].copy()
 

@@ -35,3 +35,19 @@ CREATE TABLE listing(
     FOREIGN KEY (platform_id) REFERENCES platform(platform_id)
 );
 
+
+CREATE TABLE user(
+    user_id INT GENERATED ALWAYS AS identity (MINVALUE 1 START WITH 1 INCREMENT BY 1),
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    PRIMARY KEY(user_id)
+);
+
+CREATE TABLE login(
+    login_id INT GENERATED ALWAYS AS identity (MINVALUE 1 START WITH 1 INCREMENT BY 1),
+    user_id INT UNIQUE NOT NULL,
+    password_hash TEXT UNIQUE NOT NULL,
+    created TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY(login_id),
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
+);

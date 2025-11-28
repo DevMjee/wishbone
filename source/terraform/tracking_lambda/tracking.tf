@@ -33,6 +33,11 @@ resource "aws_iam_role_policy_attachment" "tracking-lambda-provide-ecs-access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonECS_FullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "tracking-lambda-ses-access" {
+  role = aws_iam_role.wishbone-tracking-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+}
+
 resource "aws_lambda_function" "wishbone-tracking-lambda" {
   function_name = "wishbone-tracking-lambda"
   role = aws_iam_role.wishbone-tracking-role.arn

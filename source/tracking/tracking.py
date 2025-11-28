@@ -1,6 +1,7 @@
 """Lambda function for deleting user personal data upon request"""
 from os import environ
 from dotenv import load_dotenv
+import boto3
 import psycopg2
 from psycopg2.extensions import connection
 
@@ -62,9 +63,26 @@ def remove_email(email: str, conn: connection) -> dict:
     return {'status': 'success', 'msg': f"removed email '{email}' from database"}
 
 
+def verify_email(user_email: str) -> bool:
+    """checks if the email is verified or not"""
+
+    ses = boto3.client('ses')
+    response = ses.list_verified_email_addresses()
+    verified_emails = response.get("VerifiedEmailAddresses")
+
+    if user_email in verified_emails:
+        return True
+    return False
+
+
 def lambda_handler(event, context):
     conn = get_connection()
     if event.get('subscribe') == "True":
+        email = event.get('email')
+        if verify_email(email) is False:
+            ses = boto3.client('ses')
+            ses.verify_email_identity(EmailAddress=email,)
+
         return subscribe_to_game(event.get('game_id'), event.get('email'), conn)
 
     if event.get('subscribe') == "False":
@@ -74,9 +92,9 @@ def lambda_handler(event, context):
 
 
 def populate_test_emails():
-    for i in range(2, 20):
+    for i in range(2, 5):
         print(lambda_handler(
-            {'subscribe': 'True', 'email': f'test_{i}@testdomain_{i}.com', 'game_id': i}, {}))
+            {'subscribe': 'True', 'email': f'test_{i}@testdomain{i}.com', 'game_id': i}, {}))
 
 
 if __name__ == "__main__":

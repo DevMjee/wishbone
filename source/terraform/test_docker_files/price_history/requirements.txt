@@ -1,5 +1,0 @@
-awswrangler
-dotenv
-boto3
-psycopg2-binary
-boto3

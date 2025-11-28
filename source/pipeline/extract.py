@@ -43,7 +43,7 @@ def parse_steam(data: str) -> dict:
     title = soup.find("span", {"class": "title"})
     if not title:
         return {}  # if no match
-        
+
     title = title.get_text().strip()
 
     discount_price = soup.find(
@@ -94,7 +94,8 @@ def get_gog_prices(search_input: str, convert_rate: float = DEFAULT_RATE) -> dic
 
     prices = data.get('price')
     if not prices:
-        raise ValueError('Error: GoG returned a matching title but no prices were found, you can find the price for {game} on ....{url}')
+        print('There are no prices here, oops')
+        return {}
 
     final_amount = prices.get('final')
     base_amount = prices.get('base')

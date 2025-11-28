@@ -230,6 +230,7 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-verification-lifecycle-policy"
 EOF
 }
 
+<<<<<<< HEAD
 #create ECR to store the email verification Docker Image
 resource "aws_ecr_repository" "c20-wishbone-search-ecr" {
   name = "c20-wishbone-search-ecr"
@@ -268,4 +269,6 @@ resource "aws_ecr_lifecycle_policy" "c20-wishbone-search-lifecycle-policy" {
 EOF
 }
 
+=======
+>>>>>>> d109735 (trying to fix missing file changes on pr)
 

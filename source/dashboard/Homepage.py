@@ -149,7 +149,7 @@ def decrement_page() -> None:
 
 
 def account_button():
-    # TODO: docstring
+    """Creates account button"""
     _, _, user = st.columns([3, 10, 3])
     with user.expander(st.session_state.username):
         if st.button('Account'):

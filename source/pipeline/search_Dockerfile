@@ -1,0 +1,12 @@
+FROM public.ecr.aws/lambda/python:3.12
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+RUN mkdir data/
+
+COPY extract.py transform.py load.py search_pipeline.py ./
+
+CMD [ "search_pipeline.lambda_handler" ]

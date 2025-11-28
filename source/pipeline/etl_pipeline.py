@@ -4,7 +4,7 @@ import awswrangler
 import boto3
 from dotenv import load_dotenv
 import pandas as pd
-import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
 import time
 
 from extract import extract_games
@@ -29,7 +29,7 @@ def get_game_names() -> list[str]:
     SELECT
         DISTINCT g.game_name,
         l.recording_date
-    FROM 
+    FROM
         game g
     JOIN
         listing l
@@ -66,18 +66,18 @@ def pipeline(game_inputs: list[str]) -> None:
     load_data()
 
 
-def run_extract():
-    """takes the game names from the S3 game table via athena and runs the pipeline on them"""
+def lambda_handler(event, context):
+    """for the lambda"""
     games = get_game_names()
     size = int(len(games)/CHUNK_NUM)
     game_chunks = [games[i::size] for i in range(size)]
 
-    with multiprocessing.Pool(NUM_PROCESSES) as pool:
-        pool.map(pipeline, game_chunks)
+    with ThreadPoolExecutor(max_workers=NUM_PROCESSES) as executor:
+        executor.map(pipeline, game_chunks)
 
 
 if __name__ == "__main__":
     start_time = time.time()
-    run_extract()
+    lambda_handler({}, {})
     end_time = time.time()
     print(f'Time taken: {end_time - start_time}')

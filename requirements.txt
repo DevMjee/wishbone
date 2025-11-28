@@ -14,5 +14,4 @@ beautifulsoup4
 forex-python
 pytest-asyncio
 sqlalchemy
-
-
+streamlit

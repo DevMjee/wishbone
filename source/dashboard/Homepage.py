@@ -15,17 +15,31 @@ NUM_PER_PAGE = 10
 
 @st.cache_data()
 def create_max_price_column() -> pd.DataFrame:
+    """queries the Glue DB via Athena to return the games where the current price is less than
+    the normal price, by creating a column for max price for each game"""
     query = """
-        with price_cte as (select game_id, price, recording_date, platform_id, max(price) over (partition by game_id) as max_price
-        from listing)
-        select g.game_name, price_cte.recording_date, price_cte.price, p.platform_name, price_cte.max_price
-        from price_cte
-        join game g 
-        on price_cte.game_id = g.game_id
-        join platform p 
-        on price_cte.platform_id = p.platform_id
-        where price_cte.price < price_cte.max_price
-        order by price_cte.recording_date desc
+        WITH 
+            price_cte AS 
+            (SELECT game_id, price, recording_date, platform_id, max(price) over (partition by game_id) AS max_price
+        FROM 
+            listing)
+        SELECT 
+            g.game_name, price_cte.recording_date, price_cte.price, p.platform_name, price_cte.max_price
+        FROM 
+            price_cte
+        JOIN 
+            game g 
+        ON 
+            price_cte.game_id = g.game_id
+        JOIN 
+            platform p 
+        ON 
+            price_cte.platform_id = p.platform_id
+        WHERE 
+            price_cte.price < price_cte.max_price
+        ORDER BY 
+            price_cte.recording_date 
+        DESC;
         
 """
     game_id_df = wr.athena.read_sql_query(
@@ -37,7 +51,7 @@ def create_max_price_column() -> pd.DataFrame:
 
 
 def create_discount_column(data: pd.DataFrame) -> pd.DataFrame:
-    "function to create a column for discount percentage"
+    """function to create a column for discount percentage"""
     data = data.copy()
     data['discount'] = (1 - data['price']/data['max_price'])*100
     data = data[data["discount"] > 0.0]
@@ -53,7 +67,7 @@ def filter_data(game_filter: list, data: pd.DataFrame) -> pd.DataFrame:
 
 
 def format_data(game_filter: list, sort_by: str, sort_dir: str, data: pd.DataFrame) -> pd.DataFrame:
-    "Formats the dataframe for display"
+    """formats the dataframe for display"""
 
     filtered_data = filter_data(game_filter, data).copy()
 
@@ -90,7 +104,7 @@ def format_data(game_filter: list, sort_by: str, sort_dir: str, data: pd.DataFra
 
 
 def create_game_name_filter(data: pd.DataFrame) -> list:
-    "Creates a multiselect filter to filter by game name"
+    """creates a multiselect filter to filter by game name"""
     games = data['game_name'].copy()
     games = games.drop_duplicates()
     games_filter = st.multiselect(
@@ -99,7 +113,7 @@ def create_game_name_filter(data: pd.DataFrame) -> list:
 
 
 def create_paginated_df(page_num: int, data: pd.DataFrame) -> pd.DataFrame:
-    "uses session state to create a dataframe with pages"
+    """uses session state to create a dataframe with pages"""
 
     start = page_num * NUM_PER_PAGE
     end = (1+page_num) * NUM_PER_PAGE
@@ -110,7 +124,7 @@ def create_paginated_df(page_num: int, data: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_sorting_choice_filter() -> str:
-    "function to allow user to choose a parameter to sort the dataframe by"
+    """function to allow user to choose a parameter to sort the dataframe by"""
 
     option = st.selectbox(label="Sort By", options=[
                           "Discount", "Price"])
@@ -118,23 +132,24 @@ def create_sorting_choice_filter() -> str:
 
 
 def create_direction_sorting_filter() -> str:
-    "function to create an option to sort by price ascending or descending"
+    """function to create an option to sort by price ascending or descending"""
     option = st.radio(label='Order by', options=[
                       'Descending', 'Ascending'], label_visibility='hidden')
     return option
 
 
 def increment_page() -> None:
-    "function to increment the session state by 1"
+    """function to increment the session state by 1"""
     st.session_state.page += 1
 
 
 def decrement_page() -> None:
-    "function to decrement the session state by 1"
+    """function to decrement the session state by 1"""
     st.session_state.page -= 1
 
 
 def account_button():
+    """Creates account button"""
     _, _, user = st.columns([3, 10, 3])
     with user.expander(st.session_state.username):
         if st.button('Account'):
@@ -142,7 +157,7 @@ def account_button():
 
 
 def create_current_price_metrics() -> None:
-    "Creates the dashboard page to display price metrics"
+    """creates the dashboard page to display price metrics"""
 
     # using columns to format the positioning of buttons on the dashboard
     # the _ defines the spacing between the tracker and login columns as 10 units

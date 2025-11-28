@@ -7,6 +7,6 @@ RUN pip install -r requirements.txt
 
 RUN mkdir data/
 
-COPY extract.py transform.py load.py daily_pipeline.py./
+COPY extract.py transform.py load.py pipeline.py ./
 
-CMD [ "daily_pipeline.lambda_handler" ]
+CMD [ "pipeline.lambda_handler" ]

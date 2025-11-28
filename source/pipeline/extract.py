@@ -8,7 +8,7 @@ from forex_python.converter import CurrencyRates
 import requests
 
 
-FOLDER_PATH = '/tmp/data/'  # needs to be /tmp/data for lambda
+FOLDER_PATH = '/var/task/tmp/data/'  # needs to be /tmp/data for lambda
 
 STEAM_PATH = f'{FOLDER_PATH}steam_products.json'
 STEAM_SEARCH = 'https://store.steampowered.com/search?term={search_term}'
